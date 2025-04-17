@@ -140,6 +140,7 @@ export type Database = {
           client_id: string | null
           confirmation_sent: boolean | null
           created_at: string | null
+          guest_email: string | null
           guest_name: string | null
           guest_phone: string | null
           id: string
@@ -155,6 +156,7 @@ export type Database = {
           client_id?: string | null
           confirmation_sent?: boolean | null
           created_at?: string | null
+          guest_email?: string | null
           guest_name?: string | null
           guest_phone?: string | null
           id?: string
@@ -170,6 +172,7 @@ export type Database = {
           client_id?: string | null
           confirmation_sent?: boolean | null
           created_at?: string | null
+          guest_email?: string | null
           guest_name?: string | null
           guest_phone?: string | null
           id?: string

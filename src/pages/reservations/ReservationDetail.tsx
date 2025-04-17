@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Reservation, Beach, Set } from "@/types";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Calendar, MapPin, CheckCircle2 } from "lucide-react";
+import { Loader2, Calendar, MapPin, CheckCircle2, Mail, Phone } from "lucide-react";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -138,7 +138,20 @@ export default function ReservationDetail() {
             {reservation.guest_phone && (
               <div>
                 <p className="text-sm text-muted-foreground">Contact Phone</p>
-                <p>{reservation.guest_phone}</p>
+                <p className="flex items-center">
+                  <Phone className="h-4 w-4 mr-1" />
+                  {reservation.guest_phone}
+                </p>
+              </div>
+            )}
+            
+            {reservation.guest_email && (
+              <div>
+                <p className="text-sm text-muted-foreground">Contact Email</p>
+                <p className="flex items-center">
+                  <Mail className="h-4 w-4 mr-1" />
+                  {reservation.guest_email}
+                </p>
               </div>
             )}
           </div>

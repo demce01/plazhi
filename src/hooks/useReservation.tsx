@@ -167,7 +167,7 @@ export function useReservation(
           beach_id: beach?.id,
           guest_name: guestData.name,
           guest_phone: guestData.phone,
-          guest_email: guestData.email,
+          guest_email: guestData.email || null,
           reservation_date: format(selectedDate, "yyyy-MM-dd"),
           payment_amount: totalAmount,
         })
@@ -198,6 +198,7 @@ export function useReservation(
       navigate(`/reservations/${reservation.id}`);
       
     } catch (error: any) {
+      console.error("Guest reservation error:", error);
       toast({
         title: "Reservation failed",
         description: error.message,
