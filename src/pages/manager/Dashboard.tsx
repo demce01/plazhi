@@ -6,12 +6,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Beach } from "@/types";
-import { Loader2, Plus, Search } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { BeachForm } from "@/components/beaches/BeachForm";
 import { BeachManagement } from "@/components/beaches/BeachManagement";
 import { ReservationManagement } from "@/components/reservations/ReservationManagement";
-import { Input } from "@/components/ui/input";
 
 export default function ManagerDashboard() {
   const { userSession } = useAuth();
@@ -20,10 +19,8 @@ export default function ManagerDashboard() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [beaches, setBeaches] = useState<Beach[]>([]);
-  const [filteredBeaches, setFilteredBeaches] = useState<Beach[]>([]);
   const [showBeachForm, setShowBeachForm] = useState(false);
   const [activeTab, setActiveTab] = useState("beaches");
-  const [searchQuery, setSearchQuery] = useState("");
   const tabsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -35,30 +32,32 @@ export default function ManagerDashboard() {
     fetchManagerBeaches();
   }, [managerId, role, navigate]);
 
-  useEffect(() => {
-    // Filter beaches based on search query
-    const filtered = beaches.filter(beach => 
-      beach.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (beach.location && beach.location.toLowerCase().includes(searchQuery.toLowerCase()))
-    );
-    setFilteredBeaches(filtered);
-  }, [searchQuery, beaches]);
-
   const fetchManagerBeaches = async () => {
     try {
       setLoading(true);
       
-      // The Row Level Security policies will automatically restrict access based on user role
-      // Admin users will see all beaches, while managers will only see their assigned beaches
-      const { data, error } = await supabase
-        .from('beaches')
-        .select('*')
-        .order('name');
+      // If admin, fetch all beaches, otherwise fetch only beaches managed by this manager
+      let query = supabase.from('beaches').select('*');
+      
+      if (role === 'manager') {
+        const { data: managerData } = await supabase
+          .from('managers')
+          .select('beach_id')
+          .eq('id', managerId);
+        
+        if (managerData && managerData.length > 0) {
+          const beachIds = managerData.map(m => m.beach_id).filter(Boolean);
+          if (beachIds.length > 0) {
+            query = query.in('id', beachIds);
+          }
+        }
+      }
+      
+      const { data, error } = await query.order('name');
       
       if (error) throw error;
       
       setBeaches(data || []);
-      setFilteredBeaches(data || []); // Initialize filtered beaches with all beaches
     } catch (error: any) {
       toast({
         title: "Error loading beaches",
@@ -72,7 +71,6 @@ export default function ManagerDashboard() {
 
   const handleBeachCreated = (beach: Beach) => {
     setBeaches(prev => [...prev, beach]);
-    setFilteredBeaches(prev => [...prev, beach]);
     setShowBeachForm(false);
     toast({
       title: "Beach created",
@@ -112,15 +110,11 @@ export default function ManagerDashboard() {
         <div className="text-center p-10 border rounded-lg">
           <h2 className="text-xl font-semibold mb-2">No Beaches Yet</h2>
           <p className="text-muted-foreground mb-4">
-            {role === 'admin' 
-              ? "Start by creating your first beach and setting up the layout" 
-              : "You haven't been assigned to any beaches yet. Please contact your administrator."}
+            Start by creating your first beach and setting up the layout
           </p>
-          {role === 'admin' && (
-            <Button onClick={() => setShowBeachForm(true)}>
-              <Plus className="mr-2 h-4 w-4" /> Create Your First Beach
-            </Button>
-          )}
+          <Button onClick={() => setShowBeachForm(true)}>
+            <Plus className="mr-2 h-4 w-4" /> Create Your First Beach
+          </Button>
         </div>
       ) : (
         <div ref={tabsRef}>
@@ -131,19 +125,8 @@ export default function ManagerDashboard() {
             </TabsList>
             
             <TabsContent value="beaches" className="mt-6">
-              <div className="mb-4 flex items-center gap-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search beaches by name or location..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-8"
-                  />
-                </div>
-              </div>
               <div className="grid gap-4">
-                {filteredBeaches.map(beach => (
+                {beaches.map(beach => (
                   <BeachManagement key={beach.id} beach={beach} onUpdate={fetchManagerBeaches} />
                 ))}
               </div>
