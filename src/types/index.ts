@@ -3,7 +3,9 @@ import { Database } from "@/integrations/supabase/types";
 
 export type Beach = Database["public"]["Tables"]["beaches"]["Row"];
 export type Set = Database["public"]["Tables"]["sets"]["Row"];
-export type Reservation = Database["public"]["Tables"]["reservations"]["Row"];
+export type Reservation = Database["public"]["Tables"]["reservations"]["Row"] & {
+  checked_in?: boolean;
+};
 export type ReservationSet = Database["public"]["Tables"]["reservation_sets"]["Row"];
 export type Client = Database["public"]["Tables"]["clients"]["Row"];
 export type Manager = Database["public"]["Tables"]["managers"]["Row"];

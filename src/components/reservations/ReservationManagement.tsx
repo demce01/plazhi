@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,7 +40,6 @@ interface ReservationManagementProps {
 // Define interface for joined reservation data with beach
 interface ReservationWithBeach extends Reservation {
   beach_name?: string;
-  checked_in?: boolean;
 }
 
 export function ReservationManagement({ 
@@ -89,8 +87,7 @@ export function ReservationManagement({
       const reservationsWithBeach = data?.map(reservation => {
         return {
           ...reservation,
-          beach_name: (reservation.beaches as any)?.name || "Unknown Beach",
-          checked_in: reservation.checked_in || false
+          beach_name: (reservation.beaches as any)?.name || "Unknown Beach"
         };
       }) || [];
       

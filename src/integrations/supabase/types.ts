@@ -137,6 +137,7 @@ export type Database = {
       reservations: {
         Row: {
           beach_id: string
+          checked_in: boolean | null
           client_id: string | null
           confirmation_sent: boolean | null
           created_at: string | null
@@ -153,6 +154,7 @@ export type Database = {
         }
         Insert: {
           beach_id: string
+          checked_in?: boolean | null
           client_id?: string | null
           confirmation_sent?: boolean | null
           created_at?: string | null
@@ -169,6 +171,7 @@ export type Database = {
         }
         Update: {
           beach_id?: string
+          checked_in?: boolean | null
           client_id?: string | null
           confirmation_sent?: boolean | null
           created_at?: string | null
