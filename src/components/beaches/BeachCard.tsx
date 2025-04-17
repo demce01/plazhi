@@ -28,8 +28,8 @@ export function BeachCard({ beach }: BeachCardProps) {
       </CardContent>
       <CardFooter>
         <Button asChild className="w-full">
-          <Link to={`/beaches/${beach.id}`}>
-            View Beach
+          <Link to={`/beaches/${beach.id}/reserve`}>
+            Make a Reservation
           </Link>
         </Button>
       </CardFooter>
