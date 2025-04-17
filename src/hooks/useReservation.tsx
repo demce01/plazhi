@@ -86,6 +86,7 @@ export function useReservation(
     
     try {
       setIsProcessing(true);
+      console.log("Creating reservation for logged-in user with clientId:", clientId);
       
       // Create the reservation
       const totalAmount = selectedSets.reduce(
@@ -104,7 +105,12 @@ export function useReservation(
         .select()
         .single();
       
-      if (reservationError) throw reservationError;
+      if (reservationError) {
+        console.error("Reservation creation error:", reservationError);
+        throw reservationError;
+      }
+      
+      console.log("Reservation created:", reservation);
       
       // Create reservation_sets entries
       const reservationSets = selectedSets.map(set => ({
@@ -117,7 +123,10 @@ export function useReservation(
         .from("reservation_sets")
         .insert(reservationSets);
       
-      if (setsError) throw setsError;
+      if (setsError) {
+        console.error("Reservation sets error:", setsError);
+        throw setsError;
+      }
       
       toast({
         title: "Reservation successful",
@@ -128,6 +137,7 @@ export function useReservation(
       navigate(`/reservations/${reservation.id}`);
       
     } catch (error: any) {
+      console.error("Reservation error:", error);
       toast({
         title: "Reservation failed",
         description: error.message,
@@ -154,6 +164,7 @@ export function useReservation(
     
     try {
       setIsProcessing(true);
+      console.log("Creating guest reservation with data:", guestData);
       
       // Create the reservation
       const totalAmount = selectedSets.reduce(
@@ -170,11 +181,18 @@ export function useReservation(
           guest_email: guestData.email || null,
           reservation_date: format(selectedDate, "yyyy-MM-dd"),
           payment_amount: totalAmount,
+          status: "confirmed", // Auto-confirm guest reservations
+          payment_status: "completed", // Consider it paid for simplicity
         })
         .select()
         .single();
       
-      if (reservationError) throw reservationError;
+      if (reservationError) {
+        console.error("Guest reservation error:", reservationError);
+        throw reservationError;
+      }
+      
+      console.log("Guest reservation created:", reservation);
       
       // Create reservation_sets entries
       const reservationSets = selectedSets.map(set => ({
@@ -187,7 +205,10 @@ export function useReservation(
         .from("reservation_sets")
         .insert(reservationSets);
       
-      if (setsError) throw setsError;
+      if (setsError) {
+        console.error("Reservation sets error:", setsError);
+        throw setsError;
+      }
       
       toast({
         title: "Reservation successful",
