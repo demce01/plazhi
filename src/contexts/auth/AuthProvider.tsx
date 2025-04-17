@@ -16,7 +16,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     user: null,
     role: null,
     clientId: null,
-    managerId: null,
     loading: true,
   });
   const [loading, setLoading] = useState(true);
@@ -51,7 +50,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               user: null,
               role: null,
               clientId: null,
-              managerId: null,
               loading: false,
             });
           }

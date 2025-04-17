@@ -25,8 +25,6 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     // Redirect unauthorized users to appropriate pages based on their role
     if (role === 'client') {
       return <Navigate to="/reservations" replace />;
-    } else if (role === 'manager') {
-      return <Navigate to="/manager" replace />;
     } else if (role === 'admin') {
       return <Navigate to="/admin" replace />;
     }

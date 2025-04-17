@@ -28,14 +28,6 @@ export function Header() {
         );
       }
       
-      if (role === 'manager') {
-        links.push(
-          <Link key="manager" to="/manager" className="text-gray-500 hover:text-gray-900 font-medium">
-            Manager Dashboard
-          </Link>
-        );
-      }
-      
       if (role === 'admin') {
         links.push(
           <Link key="admin" to="/admin" className="text-gray-500 hover:text-gray-900 font-medium">
