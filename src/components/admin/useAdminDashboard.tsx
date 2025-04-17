@@ -132,7 +132,7 @@ export function useAdminDashboard() {
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     // Refresh data when switching to certain tabs
-    if (value === "managers" || value === "manager-management") {
+    if (value === "managers") {
       fetchAllManagers();
     }
     if (value === "beaches") {

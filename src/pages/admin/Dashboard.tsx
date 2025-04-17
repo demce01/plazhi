@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2 } from "lucide-react";
-import { ManagerManagement } from "@/components/managers/ManagerManagement";
 import { BeachesTab } from "@/components/admin/BeachesTab";
 import { ManagersTab } from "@/components/admin/ManagersTab";
 import { useAdminDashboard } from "@/components/admin/useAdminDashboard";
@@ -42,10 +41,9 @@ export default function AdminDashboard() {
         </div>
       ) : (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full grid grid-cols-3">
+          <TabsList className="w-full grid grid-cols-2">
             <TabsTrigger value="beaches">All Beaches</TabsTrigger>
             <TabsTrigger value="managers">Managers</TabsTrigger>
-            <TabsTrigger value="manager-management">Manager Management</TabsTrigger>
           </TabsList>
           
           <TabsContent value="beaches" className="mt-6">
@@ -57,13 +55,9 @@ export default function AdminDashboard() {
           </TabsContent>
           
           <TabsContent value="managers" className="mt-6">
-            <ManagersTab managers={managers} beaches={beaches} />
-          </TabsContent>
-          
-          <TabsContent value="manager-management" className="mt-6">
-            <ManagerManagement 
-              managers={managers}
-              beaches={beaches}
+            <ManagersTab 
+              managers={managers} 
+              beaches={beaches} 
               onUpdate={() => {
                 fetchAllManagers();
                 fetchAllBeaches();
