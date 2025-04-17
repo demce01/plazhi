@@ -3,14 +3,12 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Reservation } from "@/types";
-import { useReservationActions } from "@/hooks/reservations";
 import { toast as sonnerToast } from "sonner";
 
 export function useReservationOperations(onReservationsChanged: () => Promise<void>) {
   const { toast } = useToast();
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const { handleCancelReservation } = useReservationActions(selectedReservation);
 
   const handleUpdateStatus = async (reservationId: string, newStatus: string) => {
     try {
@@ -96,6 +94,7 @@ export function useReservationOperations(onReservationsChanged: () => Promise<vo
     
     try {
       setIsProcessing(true);
+      console.log(`Cancelling reservation ${selectedReservation.id}`);
       
       // Directly cancel the reservation in the database
       const { error } = await supabase
@@ -110,11 +109,11 @@ export function useReservationOperations(onReservationsChanged: () => Promise<vo
       
       sonnerToast.success("Reservation cancelled successfully");
       
-      // Clear the selected reservation
-      setSelectedReservation(null);
-      
       // Refresh the reservations list
       await onReservationsChanged();
+      
+      // Clear the selected reservation
+      setSelectedReservation(null);
     } catch (error: any) {
       console.error("Failed to cancel reservation:", error);
       toast({

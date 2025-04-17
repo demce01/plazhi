@@ -2,7 +2,7 @@
 import { Beach } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-// Import our new components
+// Import our components
 import { FilterBar } from "./management/FilterBar";
 import { ReservationTable } from "./management/ReservationTable";
 import { CancelDialog } from "./management/CancelDialog";
