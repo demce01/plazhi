@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -181,10 +182,13 @@ export function ReservationManagement({
     try {
       console.log(`Updating reservation ${reservationId} status to ${newStatus}`);
       
-      // Update the reservation status in the database
+      // Update the reservation status in the database - ensure we have the correct fields
       const { data, error } = await supabase
         .from("reservations")
-        .update({ status: newStatus })
+        .update({ 
+          status: newStatus,
+          updated_at: new Date().toISOString()
+        })
         .eq("id", reservationId)
         .select();
       
@@ -231,7 +235,10 @@ export function ReservationManagement({
       // Update the reservation check-in status in the database
       const { data, error } = await supabase
         .from("reservations")
-        .update({ checked_in: true })
+        .update({ 
+          checked_in: true,
+          updated_at: new Date().toISOString()
+        })
         .eq("id", reservationId)
         .select();
       

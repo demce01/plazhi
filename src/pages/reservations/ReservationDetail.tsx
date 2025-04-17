@@ -72,7 +72,10 @@ export default function ReservationDetail() {
     try {
       const { data, error } = await supabase
         .from("reservations")
-        .update({ checked_in: true })
+        .update({ 
+          checked_in: true,
+          updated_at: new Date().toISOString()
+        })
         .eq("id", id)
         .select();
       
