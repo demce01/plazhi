@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { BeachForm } from "@/components/beaches/BeachForm";
 import { BeachManagement } from "@/components/beaches/BeachManagement";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ManagerManagement } from "@/components/managers/ManagerManagement";
 
 export default function AdminDashboard() {
   const { userSession } = useAuth();
@@ -115,9 +116,10 @@ export default function AdminDashboard() {
         </div>
       ) : (
         <Tabs defaultValue="beaches" className="w-full">
-          <TabsList className="w-full grid grid-cols-2">
+          <TabsList className="w-full grid grid-cols-3">
             <TabsTrigger value="beaches">All Beaches</TabsTrigger>
             <TabsTrigger value="managers">Managers</TabsTrigger>
+            <TabsTrigger value="manager-management">Manager Management</TabsTrigger>
           </TabsList>
           
           <TabsContent value="beaches" className="mt-6">
@@ -165,11 +167,22 @@ export default function AdminDashboard() {
                   <Users className="mx-auto h-10 w-10 text-muted-foreground mb-2" />
                   <h3 className="text-lg font-medium">No Managers Yet</h3>
                   <p className="text-muted-foreground">
-                    Managers will appear here once they register
+                    Create managers using the Manager Management tab
                   </p>
                 </div>
               )}
             </div>
+          </TabsContent>
+          
+          <TabsContent value="manager-management" className="mt-6">
+            <ManagerManagement 
+              managers={managers}
+              beaches={beaches}
+              onUpdate={() => {
+                fetchAllManagers();
+                fetchAllBeaches();
+              }}
+            />
           </TabsContent>
         </Tabs>
       )}
