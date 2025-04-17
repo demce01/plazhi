@@ -26,14 +26,16 @@ export function useManagerForm(onSuccess: () => void) {
       
       console.log("Creating new manager with values:", values);
       
-      // First create the auth user
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      // First create the auth user using regular signup flow instead of admin API
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: values.email,
         password: values.password,
-        email_confirm: true,
-        user_metadata: {
-          fullName: values.fullName,
-          role: 'manager'
+        options: {
+          data: {
+            fullName: values.fullName,
+            role: 'manager'
+          },
+          emailRedirectTo: window.location.origin
         }
       });
       
@@ -56,7 +58,9 @@ export function useManagerForm(onSuccess: () => void) {
       
       if (managerError) {
         // If manager creation fails, we should clean up the auth user
-        await supabase.auth.admin.deleteUser(authData.user.id);
+        // Note: We can't delete users from the client, so we'll just log this 
+        // and admin would need to clean up manually if needed
+        console.error("Failed to create manager record. User was created but manager record failed:", managerError);
         throw managerError;
       }
       
@@ -65,7 +69,7 @@ export function useManagerForm(onSuccess: () => void) {
         
         toast({
           title: "Manager account created",
-          description: `New manager account created for ${values.email}`,
+          description: `New manager account created for ${values.email}. An email confirmation was sent.`,
         });
         
         form.reset();
