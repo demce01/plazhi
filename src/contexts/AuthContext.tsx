@@ -99,20 +99,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
       if (managerError) throw managerError;
       
-      // Determine role
-      let role: UserRole = 'client'; // Default role
-      if (managerData) {
-        role = 'manager';
-      }
+      // Get user metadata for admin role check
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError) throw userError;
       
-      // Check for admin role (via JWT)
-      const { data } = await supabase.auth.getUser();
-      // Fix: properly handle the JWT claims for role checking
-      const userMetadata = data?.user?.app_metadata;
-      const isAdmin = userMetadata && userMetadata.role === 'admin';
+      // Determine role based on metadata and database records
+      let role: UserRole = 'client'; // Default role
+      
+      // Check for admin role via app_metadata
+      const appMetadata = userData?.user?.app_metadata;
+      const isAdmin = appMetadata && appMetadata.role === 'admin';
       
       if (isAdmin) {
         role = 'admin';
+      } else if (managerData) {
+        role = 'manager';
       }
       
       setUserSession({

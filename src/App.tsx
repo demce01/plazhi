@@ -14,6 +14,7 @@ import Register from "./pages/auth/Register";
 import BeachesList from "./pages/beaches/BeachesList";
 import BeachDetail from "./pages/beaches/BeachDetail";
 import ManagerDashboard from "./pages/manager/Dashboard";
+import AdminDashboard from "./pages/admin/Dashboard";
 import ReservationDetail from "./pages/reservations/ReservationDetail";
 
 // Layouts
@@ -40,6 +41,11 @@ const App = () => (
               <Route path="/manager" element={
                 <ProtectedRoute allowedRoles={["manager", "admin"]}>
                   <ManagerDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminDashboard />
                 </ProtectedRoute>
               } />
             </Route>

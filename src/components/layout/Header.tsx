@@ -40,7 +40,7 @@ export function Header() {
             {user ? (
               <div className="flex items-center space-x-4">
                 <span className="text-sm text-gray-600">
-                  {user.email}
+                  {user.email} {role && `(${role})`}
                 </span>
                 <Button variant="outline" onClick={() => signOut()}>
                   Sign Out
