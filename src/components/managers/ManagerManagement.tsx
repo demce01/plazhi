@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Beach, Manager } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -34,6 +34,14 @@ export function ManagerManagement({ managers, beaches, onUpdate }: ManagerManage
   const { toast } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [updating, setUpdating] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [localManagers, setLocalManagers] = useState<Manager[]>(managers);
+
+  // Update local managers when the prop changes
+  useEffect(() => {
+    setLocalManagers(managers);
+    console.log("ManagerManagement received managers:", managers);
+  }, [managers]);
 
   const getBeachName = (beachId: string | null) => {
     if (!beachId) return "Not assigned";
@@ -45,12 +53,15 @@ export function ManagerManagement({ managers, beaches, onUpdate }: ManagerManage
     try {
       setUpdating(managerId);
       
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("managers")
         .update({ beach_id: beachId === "none" ? null : beachId })
-        .eq("id", managerId);
+        .eq("id", managerId)
+        .select();
       
       if (error) throw error;
+      
+      console.log("Manager updated:", data);
       
       toast({
         title: "Manager updated",
@@ -70,6 +81,41 @@ export function ManagerManagement({ managers, beaches, onUpdate }: ManagerManage
       setUpdating(null);
     }
   };
+
+  // If we have no managers, let's fetch them directly
+  const fetchManagers = async () => {
+    if (localManagers.length > 0) return;
+    
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('managers')
+        .select('*');
+      
+      if (error) throw error;
+      
+      console.log("Directly fetched managers:", data);
+      if (data) {
+        setLocalManagers(data);
+      }
+    } catch (error: any) {
+      console.error("Error fetching managers:", error);
+      toast({
+        title: "Error loading managers",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch managers on component mount if none were provided
+  useEffect(() => {
+    if (managers.length === 0) {
+      fetchManagers();
+    }
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -100,6 +146,7 @@ export function ManagerManagement({ managers, beaches, onUpdate }: ManagerManage
               onSuccess={() => {
                 setShowForm(false);
                 onUpdate();
+                fetchManagers(); // Refresh our local list
               }} 
             />
           </CardContent>
@@ -114,7 +161,11 @@ export function ManagerManagement({ managers, beaches, onUpdate }: ManagerManage
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {managers.length === 0 ? (
+          {loading ? (
+            <div className="flex justify-center p-6">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : localManagers.length === 0 ? (
             <div className="text-center p-6">
               <UserPlus className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-medium mb-2">No Managers Yet</h3>
@@ -136,7 +187,7 @@ export function ManagerManagement({ managers, beaches, onUpdate }: ManagerManage
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {managers.map(manager => (
+                {localManagers.map(manager => (
                   <TableRow key={manager.id}>
                     <TableCell className="font-medium">{manager.user_id}</TableCell>
                     <TableCell>

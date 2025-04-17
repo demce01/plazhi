@@ -22,6 +22,7 @@ export default function AdminDashboard() {
   const [beaches, setBeaches] = useState<Beach[]>([]);
   const [managers, setManagers] = useState<Manager[]>([]);
   const [showBeachForm, setShowBeachForm] = useState(false);
+  const [activeTab, setActiveTab] = useState("beaches");
 
   useEffect(() => {
     if (role !== 'admin') {
@@ -57,6 +58,7 @@ export default function AdminDashboard() {
 
   const fetchAllManagers = async () => {
     try {
+      setLoading(true);
       const { data, error } = await supabase
         .from('managers')
         .select('*');
@@ -66,11 +68,14 @@ export default function AdminDashboard() {
       console.log("Fetched managers:", data);
       setManagers(data || []);
     } catch (error: any) {
+      console.error("Error loading managers:", error);
       toast({
         title: "Error loading managers",
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -92,6 +97,18 @@ export default function AdminDashboard() {
     return beach ? beach.name : "Unknown Beach";
   };
 
+  // Handle tab change
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    // Refresh data when switching to certain tabs
+    if (value === "managers" || value === "manager-management") {
+      fetchAllManagers();
+    }
+    if (value === "beaches") {
+      fetchAllBeaches();
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -108,12 +125,12 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {loading ? (
+      {loading && beaches.length === 0 && managers.length === 0 ? (
         <div className="flex justify-center p-10">
           <Loader2 className="h-10 w-10 animate-spin text-primary" />
         </div>
       ) : (
-        <Tabs defaultValue="beaches" className="w-full">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="w-full grid grid-cols-3">
             <TabsTrigger value="beaches">All Beaches</TabsTrigger>
             <TabsTrigger value="managers">Managers</TabsTrigger>
@@ -143,24 +160,7 @@ export default function AdminDashboard() {
           <TabsContent value="managers" className="mt-6">
             <h3 className="text-xl font-medium mb-4">Beach Managers</h3>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {managers.map(manager => (
-                <Card key={manager.id}>
-                  <CardHeader>
-                    <CardTitle>Manager</CardTitle>
-                    <CardDescription>ID: {manager.user_id}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="font-medium">
-                      {manager.beach_id ? (
-                        <>Managing: {getBeachName(manager)}</>
-                      ) : (
-                        "Not assigned to any beach"
-                      )}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
-              {managers.length === 0 && (
+              {managers.length === 0 ? (
                 <div className="col-span-full text-center p-6 border rounded-lg">
                   <Users className="mx-auto h-10 w-10 text-muted-foreground mb-2" />
                   <h3 className="text-lg font-medium">No Managers Yet</h3>
@@ -168,6 +168,24 @@ export default function AdminDashboard() {
                     Create managers using the Manager Management tab
                   </p>
                 </div>
+              ) : (
+                managers.map(manager => (
+                  <Card key={manager.id}>
+                    <CardHeader>
+                      <CardTitle>Manager</CardTitle>
+                      <CardDescription>ID: {manager.user_id}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="font-medium">
+                        {manager.beach_id ? (
+                          <>Managing: {getBeachName(manager)}</>
+                        ) : (
+                          "Not assigned to any beach"
+                        )}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))
               )}
             </div>
           </TabsContent>
