@@ -27,14 +27,13 @@ export function useReservationActions(reservation: Reservation | null) {
       
       if (error) throw error;
       
-      toast({
-        title: "Reservation cancelled",
-        description: "Your reservation has been successfully cancelled",
-      });
+      // Success! Don't navigate if we're on the dashboard
+      if (window.location.pathname.includes('/reservations/')) {
+        // We're on the reservation detail page, refresh the page
+        navigate(0);
+      }
       
-      // Refresh the page to show updated status
-      navigate(0);
-      
+      return true;
     } catch (error: any) {
       console.error("Failed to cancel reservation:", error);
       toast({
@@ -42,6 +41,7 @@ export function useReservationActions(reservation: Reservation | null) {
         description: error.message,
         variant: "destructive",
       });
+      return false;
     } finally {
       setIsProcessing(false);
     }

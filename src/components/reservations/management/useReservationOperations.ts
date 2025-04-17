@@ -87,9 +87,30 @@ export function useReservationOperations(onReservationsChanged: () => Promise<vo
   };
 
   const handleCancelComplete = async () => {
-    await handleCancelReservation();
-    setSelectedReservation(null);
-    await onReservationsChanged();
+    if (!selectedReservation) return;
+    
+    try {
+      // Use the handleCancelReservation from the hook
+      await handleCancelReservation();
+      
+      toast({
+        title: "Reservation cancelled",
+        description: "The reservation has been successfully cancelled",
+      });
+      
+      // Clear the selected reservation
+      setSelectedReservation(null);
+      
+      // Refresh the reservations list
+      await onReservationsChanged();
+    } catch (error: any) {
+      console.error("Failed to cancel reservation:", error);
+      toast({
+        title: "Error cancelling reservation",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   return {

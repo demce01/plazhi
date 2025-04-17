@@ -36,7 +36,10 @@ export function CancelDialog({
         <AlertDialogFooter>
           <AlertDialogCancel>Keep Reservation</AlertDialogCancel>
           <AlertDialogAction 
-            onClick={onConfirm}
+            onClick={(e) => {
+              e.preventDefault();
+              onConfirm();
+            }}
             disabled={isProcessing}
           >
             {isProcessing ? (
