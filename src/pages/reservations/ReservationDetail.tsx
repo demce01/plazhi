@@ -44,7 +44,7 @@ export default function ReservationDetail() {
       
       <PaymentSummary reservation={reservation} sets={sets} />
       
-      <ReservationActions />
+      <ReservationActions reservation={reservation} />
     </div>
   );
 }
