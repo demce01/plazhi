@@ -1,82 +1,45 @@
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Beach } from "@/types";
-import { BeachCard } from "@/components/beaches/BeachCard";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Loader2 } from "lucide-react";
+import { BeachesTab } from "@/components/admin/BeachesTab";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function BeachesList() {
-  const [beaches, setBeaches] = useState<Beach[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: beaches = [], isLoading, refetch } = useQuery({
+    queryKey: ['beaches'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('beaches')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-  useEffect(() => {
-    const fetchBeaches = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("beaches")
-          .select("*")
-          .order("name");
+      if (error) throw error;
+      return data as Beach[];
+    },
+  });
 
-        if (error) throw error;
-
-        setBeaches(data || []);
-      } catch (err: any) {
-        console.error("Error loading beaches:", err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBeaches();
-  }, []);
-
-  if (loading) {
-    return (
-      <div>
-        <h1 className="text-3xl font-bold mb-8">Beaches</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="flex flex-col space-y-3">
-              <Skeleton className="h-[180px] w-full rounded-xl" />
-              <div className="space-y-2">
-                <Skeleton className="h-5 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-center py-12">
-        <h1 className="text-3xl font-bold mb-4 text-red-600">Error Loading Beaches</h1>
-        <p className="text-gray-600 mb-8">{error}</p>
-      </div>
-    );
-  }
-
-  if (beaches.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <h1 className="text-3xl font-bold mb-4">No Beaches Found</h1>
-        <p className="text-gray-600">No beaches are currently available.</p>
-      </div>
-    );
-  }
+  const handleBeachCreated = (beach: Beach) => {
+    refetch();
+  };
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-8">Beaches</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {beaches.map((beach) => (
-          <BeachCard key={beach.id} beach={beach} />
-        ))}
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">Beach Management</h1>
       </div>
+
+      {isLoading ? (
+        <div className="flex justify-center p-10">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        </div>
+      ) : (
+        <BeachesTab 
+          beaches={beaches} 
+          onBeachCreated={handleBeachCreated}
+          onUpdate={refetch}
+        />
+      )}
     </div>
   );
 }
