@@ -1,4 +1,5 @@
-import type { Set } from "@/types";
+
+import type { Set, Zone } from "@/types";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +15,26 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { GuestReservationForm } from "@/components/reservations/GuestReservationForm";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  RadioGroup,
+  RadioGroupItem,
+} from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 export default function BeachDetail() {
   const { id } = useParams<{ id: string }>();
@@ -25,6 +46,8 @@ export default function BeachDetail() {
   const [loading, setLoading] = useState(true);
   const [beach, setBeach] = useState<Beach | null>(null);
   const [sets, setSets] = useState<Set[]>([]);
+  const [zones, setZones] = useState<Zone[]>([]);
+  const [selectedZone, setSelectedZone] = useState<Zone | null>(null);
   const [selectedSets, setSelectedSets] = useState<Set[]>([]);
   const [reservedSets, setReservedSets] = useState<Set[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -40,6 +63,7 @@ export default function BeachDetail() {
   useEffect(() => {
     if (beach?.id && selectedDate) {
       fetchBeachSets(beach.id, selectedDate);
+      fetchBeachZones(beach.id);
     }
   }, [beach, selectedDate]);
 
@@ -63,6 +87,25 @@ export default function BeachDetail() {
       navigate("/beaches");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchBeachZones = async (beachId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("zones")
+        .select("*")
+        .eq("beach_id", beachId)
+        .order("name");
+      
+      if (error) throw error;
+      setZones(data || []);
+    } catch (error: any) {
+      toast({
+        title: "Error loading beach zones",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -112,6 +155,7 @@ export default function BeachDetail() {
       
       // Clear selected sets when changing date
       setSelectedSets([]);
+      setSelectedZone(null);
     } catch (error: any) {
       toast({
         title: "Error loading beach sets",
@@ -127,7 +171,7 @@ export default function BeachDetail() {
     setSelectedSets(prev => {
       const isSelected = prev.some(s => s.id === set.id);
       if (isSelected) {
-        return prev.filter(s => s.id === set.id);
+        return prev.filter(s => s.id !== set.id);
       } else {
         return [...prev, set];
       }
@@ -136,6 +180,37 @@ export default function BeachDetail() {
 
   const handleRemoveSet = (setId: string) => {
     setSelectedSets(prev => prev.filter(s => s.id !== setId));
+  };
+
+  const handleZoneChange = (zoneId: string) => {
+    const zone = zones.find(z => z.id === zoneId) || null;
+    setSelectedZone(zone);
+    // Clear selected sets when changing zone
+    setSelectedSets([]);
+  };
+
+  const getSetsForZone = (zoneName: string) => {
+    return sets.filter(set => set.name.startsWith(zoneName));
+  };
+
+  const getSetsByRow = (zoneSets: Set[]) => {
+    const rows = new Map<number, Set[]>();
+    
+    zoneSets.forEach(set => {
+      const rowNum = set.row_number || 0;
+      if (!rows.has(rowNum)) {
+        rows.set(rowNum, []);
+      }
+      rows.get(rowNum)?.push(set);
+    });
+    
+    // Sort rows by row number and sets by position within each row
+    return Array.from(rows.entries())
+      .sort(([a], [b]) => a - b)
+      .map(([rowNum, sets]) => ({
+        rowNum,
+        sets: sets.sort((a, b) => (a.position || 0) - (b.position || 0))
+      }));
   };
 
   const handleReservation = async () => {
@@ -350,15 +425,74 @@ export default function BeachDetail() {
             </Popover>
           </div>
           
+          {zones.length > 0 && (
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold mb-3">Select Zone</h2>
+              <Select onValueChange={handleZoneChange} value={selectedZone?.id}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a zone" />
+                </SelectTrigger>
+                <SelectContent>
+                  {zones.map((zone) => (
+                    <SelectItem key={zone.id} value={zone.id}>
+                      {zone.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          
           <div>
-            <h2 className="text-xl font-semibold mb-3">Beach Layout</h2>
-            <BeachLayout 
-              sets={sets}
-              beachName={beach.name}
-              onSelectSet={handleSelectSet}
-              selectedSets={selectedSets}
-              disabledSets={reservedSets}
-            />
+            {selectedZone ? (
+              <div className="space-y-4">
+                <h2 className="text-xl font-semibold mb-3">Available Sets - {selectedZone.name}</h2>
+                
+                {getSetsByRow(getSetsForZone(selectedZone.name)).map(({ rowNum, sets: rowSets }) => (
+                  <div key={rowNum} className="border rounded-md p-4 bg-card">
+                    <h3 className="font-medium mb-2">Row {rowNum}</h3>
+                    <RadioGroup className="grid grid-cols-4 gap-2">
+                      {rowSets.map((set) => (
+                        <div 
+                          key={set.id} 
+                          className={cn(
+                            "relative p-2 rounded-md border",
+                            set.status === "reserved" && "bg-red-100 border-red-300",
+                            selectedSets.some(s => s.id === set.id) && "bg-blue-100 border-blue-300",
+                            set.status !== "reserved" && !selectedSets.some(s => s.id === set.id) && "bg-green-100 border-green-300"
+                          )}
+                        >
+                          <Label
+                            htmlFor={set.id}
+                            className={cn(
+                              "flex flex-col items-center space-y-1 cursor-pointer",
+                              set.status === "reserved" && "cursor-not-allowed text-red-500"
+                            )}
+                          >
+                            <RadioGroupItem 
+                              value={set.id} 
+                              id={set.id} 
+                              disabled={set.status === "reserved"}
+                              onClick={() => handleSelectSet(set)}
+                              checked={selectedSets.some(s => s.id === set.id)}
+                            />
+                            <span className="text-sm font-medium">{set.name}</span>
+                            <span className="text-xs">{Number(set.price).toFixed(2)}</span>
+                          </Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center p-6 border rounded-md bg-muted/50">
+                <p className="text-muted-foreground mb-2">Please select a zone first</p>
+                <p className="text-sm text-muted-foreground">
+                  Select a zone to view and reserve available beach sets
+                </p>
+              </div>
+            )}
           </div>
         </div>
         
