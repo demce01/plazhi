@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { Beach, Reservation } from "@/types";
 import { Button } from "@/components/ui/button";
-import { Calendar, Filter, Loader2, Search, UserCheck } from "lucide-react";
+import { Calendar, Filter, Loader2, Search, UserCheck, X } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -32,6 +31,18 @@ import {
 } from "@/components/ui/select";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Link } from "react-router-dom";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useReservationActions } from "@/hooks/reservations";
 
 interface ReservationManagementProps {
   beaches: Beach[];
@@ -51,6 +62,8 @@ export function ReservationManagement({
   const [loading, setLoading] = useState(true);
   const [reservations, setReservations] = useState<ReservationWithBeach[]>([]);
   const [filteredReservations, setFilteredReservations] = useState<ReservationWithBeach[]>([]);
+  const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
+  const { handleCancelReservation, isProcessing } = useReservationActions(selectedReservation);
   
   // Filters
   const [searchQuery, setSearchQuery] = useState("");
@@ -286,6 +299,16 @@ export function ReservationManagement({
     setCheckinFilter("all");
   };
 
+  const openCancelDialog = (reservation: Reservation) => {
+    setSelectedReservation(reservation);
+  };
+
+  const handleCancelComplete = async () => {
+    await handleCancelReservation();
+    setSelectedReservation(null);
+    await fetchReservations();
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -441,7 +464,7 @@ export function ReservationManagement({
                             </Button>
                           )}
                           
-                          {reservation.status !== 'confirmed' && (
+                          {reservation.status !== 'confirmed' && reservation.status !== 'cancelled' && (
                             <Button
                               size="sm"
                               variant="outline"
@@ -455,8 +478,9 @@ export function ReservationManagement({
                             <Button
                               size="sm"
                               variant="destructive"
-                              onClick={() => handleUpdateStatus(reservation.id, 'cancelled')}
+                              onClick={() => openCancelDialog(reservation)}
                             >
+                              <X className="h-4 w-4 mr-1" />
                               Cancel
                             </Button>
                           )}
@@ -470,6 +494,33 @@ export function ReservationManagement({
           )}
         </div>
       </CardContent>
+
+      <AlertDialog open={!!selectedReservation} onOpenChange={(open) => !open && setSelectedReservation(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel Reservation</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to cancel this reservation? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep Reservation</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleCancelComplete}
+              disabled={isProcessing}
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>Yes, Cancel Reservation</>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

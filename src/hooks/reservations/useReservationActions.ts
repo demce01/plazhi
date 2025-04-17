@@ -47,6 +47,7 @@ export function useReservationActions(reservation: Reservation | null) {
     }
   };
   
+  // Check if a reservation can be cancelled
   const isCancellable = reservation && 
     reservation.status !== "cancelled" && 
     !reservation.checked_in;
