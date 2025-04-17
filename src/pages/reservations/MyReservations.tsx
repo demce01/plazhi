@@ -5,12 +5,7 @@ import { useAuth } from "@/contexts/auth";
 import { Button } from "@/components/ui/button";
 import { ReservationCard } from "@/components/reservations/ReservationCard";
 import { MyReservationsFilterBar } from "@/components/reservations/MyReservationsFilterBar";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState, useMemo } from "react";
 
 export default function MyReservations() {
@@ -19,15 +14,36 @@ export default function MyReservations() {
   const navigate = useNavigate();
 
   // Filter states
-  const [searchQuery, setSearchQuery] = useState("");
+  const [nameFilter, setNameFilter] = useState("");
+  const [phoneFilter, setPhoneFilter] = useState("");
+  const [reservationIdFilter, setReservationIdFilter] = useState("");
   const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
   const [statusFilter, setStatusFilter] = useState("all");
 
   // Apply filters
   const filteredReservations = useMemo(() => {
     return reservations.filter((res) => {
-      // Search filter
-      if (searchQuery && !res.beach_name?.toLowerCase().includes(searchQuery.toLowerCase())) {
+      // Name filter
+      if (
+        nameFilter && 
+        !res.guest_name?.toLowerCase().includes(nameFilter.toLowerCase())
+      ) {
+        return false;
+      }
+
+      // Phone filter
+      if (
+        phoneFilter &&
+        !res.guest_phone?.includes(phoneFilter)
+      ) {
+        return false;
+      }
+
+      // Reservation ID filter
+      if (
+        reservationIdFilter &&
+        !res.id.toString().includes(reservationIdFilter)
+      ) {
         return false;
       }
 
@@ -51,7 +67,7 @@ export default function MyReservations() {
 
       return true;
     });
-  }, [reservations, searchQuery, dateFilter, statusFilter]);
+  }, [reservations, nameFilter, phoneFilter, reservationIdFilter, dateFilter, statusFilter]);
 
   const upcomingReservations = filteredReservations.filter(
     res => new Date(res.reservation_date) >= new Date() && res.status !== 'cancelled'
@@ -101,10 +117,14 @@ export default function MyReservations() {
       ) : (
         <>
           <MyReservationsFilterBar
-            searchQuery={searchQuery}
+            nameFilter={nameFilter}
+            phoneFilter={phoneFilter}
+            reservationIdFilter={reservationIdFilter}
             dateFilter={dateFilter}
             statusFilter={statusFilter}
-            setSearchQuery={setSearchQuery}
+            setNameFilter={setNameFilter}
+            setPhoneFilter={setPhoneFilter}
+            setReservationIdFilter={setReservationIdFilter}
             setDateFilter={setDateFilter}
             setStatusFilter={setStatusFilter}
           />
