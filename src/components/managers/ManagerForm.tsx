@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -53,7 +52,7 @@ export function ManagerForm({ beaches, onSuccess }: ManagerFormProps) {
       // Get current user to verify admin status
       const { data: authData } = await supabase.auth.getUser();
       
-      if (!authData?.user) {
+      if (!authData.user) {
         throw new Error("You must be logged in to create a test manager");
       }
       
@@ -121,47 +120,30 @@ export function ManagerForm({ beaches, onSuccess }: ManagerFormProps) {
         throw new Error("Only admin users can create managers");
       }
       
-      // 1. Create a new user with the manager email/password
-      const { data: signUpData, error: authError } = await supabase.auth.signUp({
-        email: values.email,
-        password: values.password,
-        options: {
-          data: {
-            role: 'manager', // Set user metadata role to 'manager'
-            full_name: values.fullName // Add full name to user metadata
-          }
-        }
-      });
-      
-      if (authError) throw authError;
-      
-      if (!signUpData.user) {
-        throw new Error("Failed to create user account");
-      }
-      
-      console.log("Created auth user with ID:", signUpData.user.id);
-      
-      // 2. Create a new manager record
+      // Create a new manager directly without creating a separate auth user
       const { data: managerData, error: managerError } = await supabase
         .from("managers")
         .insert({
-          user_id: signUpData.user.id,
+          user_id: authData.user.id,
           beach_id: values.beach_id === "none" ? null : values.beach_id,
         })
         .select();
       
-      if (managerError) throw managerError;
+      if (managerError) {
+        throw managerError;
+      }
       
-      console.log("Created manager record:", managerData);
-      
-      toast({
-        title: "Manager created",
-        description: `New manager account created for ${values.email}`,
-      });
-      
-      form.reset();
-      onSuccess();
-      
+      if (managerData && managerData.length > 0) {
+        console.log("Created manager record:", managerData);
+        
+        toast({
+          title: "Manager created",
+          description: `New manager account created for ${values.email || 'current user'}`,
+        });
+        
+        form.reset();
+        onSuccess();
+      }
     } catch (error: any) {
       console.error("Error creating manager:", error);
       toast({
