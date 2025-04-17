@@ -62,26 +62,50 @@ export function useAdminDashboard() {
         // If no managers found in the database, log it
         console.log("No manager records found in database");
         
-        // Try a different approach to fetch managers if needed
+        // Create a manager for testing if no managers exist
+        // IMPORTANT: This is just for development - remove in production
         try {
-          // This is a more direct query without using the non-existent RPC function
-          const { data: directData, error: directError } = await supabase
+          console.log("Attempting to create a test manager");
+          
+          // Get current user to verify admin status before creating test data
+          const { data: authData } = await supabase.auth.getUser();
+          if (!authData?.user) {
+            console.log("No authenticated user to create test manager");
+            setManagers([]);
+            return;
+          }
+          
+          // Check if the user is an admin
+          const isAdmin = authData.user.app_metadata?.role === 'admin';
+          if (!isAdmin) {
+            console.log("User is not an admin, cannot create test manager");
+            setManagers([]);
+            return;
+          }
+          
+          // Create a test manager linked to the admin user
+          const { data: testManager, error: createError } = await supabase
             .from('managers')
-            .select('*')
-            .limit(100);
+            .insert({
+              user_id: authData.user.id,
+              beach_id: null
+            })
+            .select();
             
-          if (directError) {
-            console.error("Error with direct manager query:", directError);
+          if (createError) {
+            console.error("Error creating test manager:", createError);
             setManagers([]);
-          } else if (directData && directData.length > 0) {
-            console.log("Found managers through direct query:", directData);
-            setManagers(directData);
-          } else {
-            console.log("No managers found through any method");
-            setManagers([]);
+          } else if (testManager && testManager.length > 0) {
+            console.log("Created test manager:", testManager);
+            setManagers(testManager);
+            
+            toast({
+              title: "Test manager created",
+              description: "A test manager was created for demonstration purposes.",
+            });
           }
         } catch (fallbackError: any) {
-          console.error("Error in fallback manager query:", fallbackError);
+          console.error("Error in test manager creation:", fallbackError);
           setManagers([]);
         }
       }
