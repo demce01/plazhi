@@ -1,5 +1,4 @@
 
-import { Loader2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,12 +9,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Loader2 } from "lucide-react";
 
 interface CancelDialogProps {
   isOpen: boolean;
   isProcessing: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: () => Promise<void>;
+  onConfirm: () => void;
 }
 
 export function CancelDialog({
@@ -34,7 +34,7 @@ export function CancelDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Keep Reservation</AlertDialogCancel>
+          <AlertDialogCancel disabled={isProcessing}>Keep Reservation</AlertDialogCancel>
           <AlertDialogAction 
             onClick={(e) => {
               e.preventDefault();
@@ -45,10 +45,10 @@ export function CancelDialog({
             {isProcessing ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processing...
+                Cancelling...
               </>
             ) : (
-              <>Yes, Cancel Reservation</>
+              "Yes, Cancel Reservation"
             )}
           </AlertDialogAction>
         </AlertDialogFooter>

@@ -4,14 +4,17 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Reservation } from "@/types";
 import { useReservationActions } from "@/hooks/reservations";
+import { toast as sonnerToast } from "sonner";
 
 export function useReservationOperations(onReservationsChanged: () => Promise<void>) {
   const { toast } = useToast();
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
-  const { handleCancelReservation, isProcessing } = useReservationActions(selectedReservation);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const { handleCancelReservation } = useReservationActions(selectedReservation);
 
   const handleUpdateStatus = async (reservationId: string, newStatus: string) => {
     try {
+      setIsProcessing(true);
       console.log(`Updating reservation ${reservationId} status to ${newStatus}`);
       
       // Update the reservation status in the database
@@ -43,11 +46,14 @@ export function useReservationOperations(onReservationsChanged: () => Promise<vo
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
   const handleCheckIn = async (reservationId: string) => {
     try {
+      setIsProcessing(true);
       console.log(`Checking in reservation ${reservationId}`);
       
       // Update the reservation check-in status in the database
@@ -65,10 +71,7 @@ export function useReservationOperations(onReservationsChanged: () => Promise<vo
         throw error;
       }
       
-      toast({
-        title: "Guest checked in",
-        description: "Guest has been successfully checked in",
-      });
+      sonnerToast.success("Guest checked in successfully");
       
       // Refresh the reservations list
       await onReservationsChanged();
@@ -79,6 +82,8 @@ export function useReservationOperations(onReservationsChanged: () => Promise<vo
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -90,13 +95,20 @@ export function useReservationOperations(onReservationsChanged: () => Promise<vo
     if (!selectedReservation) return;
     
     try {
-      // Use the handleCancelReservation from the hook
-      await handleCancelReservation();
+      setIsProcessing(true);
       
-      toast({
-        title: "Reservation cancelled",
-        description: "The reservation has been successfully cancelled",
-      });
+      // Directly cancel the reservation in the database
+      const { error } = await supabase
+        .from("reservations")
+        .update({ 
+          status: "cancelled",
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", selectedReservation.id);
+      
+      if (error) throw error;
+      
+      sonnerToast.success("Reservation cancelled successfully");
       
       // Clear the selected reservation
       setSelectedReservation(null);
@@ -110,6 +122,8 @@ export function useReservationOperations(onReservationsChanged: () => Promise<vo
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setIsProcessing(false);
     }
   };
 

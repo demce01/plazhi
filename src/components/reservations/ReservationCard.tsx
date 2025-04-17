@@ -12,12 +12,16 @@ interface ReservationCardProps {
 }
 
 export function ReservationCard({ reservation }: ReservationCardProps) {
+  // Format date for better display
+  const formattedDate = format(new Date(reservation.reservation_date), 'MMM dd, yyyy');
+  const isPast = new Date(reservation.reservation_date) < new Date();
+  
   return (
     <Card className="h-full flex flex-col">
       <CardHeader>
         <div className="flex items-start justify-between">
           <div>
-            <CardTitle className="text-lg">{format(new Date(reservation.reservation_date), 'MMM dd, yyyy')}</CardTitle>
+            <CardTitle className="text-lg">{formattedDate}</CardTitle>
             <CardDescription className="flex items-center mt-1">
               <Calendar className="h-4 w-4 mr-1" />
               {reservation.id.substring(0, 8).toUpperCase()}
@@ -45,6 +49,11 @@ export function ReservationCard({ reservation }: ReservationCardProps) {
           {reservation.checked_in !== undefined && (
             <div className="flex items-center">
               <CheckinBadge checkedIn={reservation.checked_in} />
+            </div>
+          )}
+          {isPast && !reservation.checked_in && reservation.status !== 'cancelled' && (
+            <div className="text-sm text-amber-600">
+              Note: This reservation was not checked in
             </div>
           )}
         </div>

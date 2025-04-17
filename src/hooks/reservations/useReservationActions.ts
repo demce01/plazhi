@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Reservation } from "@/types";
+import { toast as sonnerToast } from "sonner";
 
 export function useReservationActions(reservation: Reservation | null) {
   const { toast } = useToast();
@@ -22,12 +23,13 @@ export function useReservationActions(reservation: Reservation | null) {
           status: "cancelled",
           updated_at: new Date().toISOString()
         })
-        .eq("id", reservation.id)
-        .select();
+        .eq("id", reservation.id);
       
       if (error) throw error;
       
-      // Success! Don't navigate if we're on the dashboard
+      sonnerToast.success("Reservation cancelled successfully");
+      
+      // Don't navigate if we're on the dashboard
       if (window.location.pathname.includes('/reservations/')) {
         // We're on the reservation detail page, refresh the page
         navigate(0);
