@@ -59,21 +59,29 @@ export function useAdminDashboard() {
       if (managerData && managerData.length > 0) {
         setManagers(managerData);
       } else {
-        // If no managers found, fetch directly from database
-        console.log("No manager records found in database, trying direct query");
+        // If no managers found in the database, log it
+        console.log("No manager records found in database");
         
-        const { data: directData, error: directError } = await supabase
-          .rpc('get_all_managers');
-        
-        if (directError) {
-          console.error("Error with direct manager query:", directError);
-          console.log("No managers found through any method");
-          setManagers([]);
-        } else if (directData && directData.length > 0) {
-          console.log("Found managers through direct query:", directData);
-          setManagers(directData);
-        } else {
-          console.log("No managers found through any method");
+        // Try a different approach to fetch managers if needed
+        try {
+          // This is a more direct query without using the non-existent RPC function
+          const { data: directData, error: directError } = await supabase
+            .from('managers')
+            .select('*')
+            .limit(100);
+            
+          if (directError) {
+            console.error("Error with direct manager query:", directError);
+            setManagers([]);
+          } else if (directData && directData.length > 0) {
+            console.log("Found managers through direct query:", directData);
+            setManagers(directData);
+          } else {
+            console.log("No managers found through any method");
+            setManagers([]);
+          }
+        } catch (fallbackError: any) {
+          console.error("Error in fallback manager query:", fallbackError);
           setManagers([]);
         }
       }
