@@ -64,7 +64,7 @@ export function ManagerForm({ beaches, onSuccess }: ManagerFormProps) {
         .from("managers")
         .insert({
           user_id: authData.user.id,
-          beach_id: values.beach_id || null,
+          beach_id: values.beach_id === "none" ? null : values.beach_id,
         });
       
       if (managerError) throw managerError;

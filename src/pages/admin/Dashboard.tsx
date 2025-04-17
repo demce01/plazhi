@@ -59,13 +59,11 @@ export default function AdminDashboard() {
     try {
       const { data, error } = await supabase
         .from('managers')
-        .select(`
-          *,
-          beaches(id, name)
-        `);
+        .select('*');
       
       if (error) throw error;
       
+      console.log("Fetched managers:", data);
       setManagers(data || []);
     } catch (error: any) {
       toast({
