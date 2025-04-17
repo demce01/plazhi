@@ -1,10 +1,9 @@
-
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { useBeachDetails } from "@/hooks/useBeachDetails";
-import { useReservation } from "@/hooks/useReservation";
+import { useReservation } from "@/hooks/reservations";
 import { ReservationSteps } from "@/components/reservations/ReservationSteps";
 import { DateStep } from "@/components/reservations/DateStep";
 import { LocationStep } from "@/components/reservations/LocationStep";
@@ -15,7 +14,6 @@ export default function BeachDetail() {
   const navigate = useNavigate();
   const { userSession } = useAuth();
   
-  // Custom hooks for beach data and reservation management
   const {
     loading,
     beach,
@@ -71,7 +69,6 @@ export default function BeachDetail() {
     );
   }
   
-  // Log information for debugging
   console.log("Rendering beach detail with zones:", zones.length);
 
   return (
@@ -84,13 +81,11 @@ export default function BeachDetail() {
           <p className="text-gray-600">Follow the steps below to complete your reservation</p>
         </div>
         
-        {/* Step Indicator */}
         <ReservationSteps 
           currentStep={currentStep} 
           onStepChange={goToStep} 
         />
         
-        {/* Step content */}
         <div className="mt-8">
           <DateStep 
             selectedDate={selectedDate} 

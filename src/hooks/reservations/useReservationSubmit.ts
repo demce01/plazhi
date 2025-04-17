@@ -1,78 +1,25 @@
 
 import { useState } from "react";
-import { Beach, Set, Zone } from "@/types";
+import { Beach, Set, UserSession } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
-import { UserSession } from "@/types";
 
-export function useReservation(
+export function useReservationSubmit(
   beach: Beach | null, 
   selectedDate: Date,
-  userSession: UserSession
+  userSession: UserSession,
+  selectedSets: Set[],
+  setIsProcessing: (value: boolean) => void
 ) {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, clientId } = userSession;
-  
-  const [selectedZone, setSelectedZone] = useState<Zone | null>(null);
-  const [selectedSets, setSelectedSets] = useState<Set[]>([]);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [showGuestForm, setShowGuestForm] = useState(false);
-  const [currentStep, setCurrentStep] = useState<"date" | "location" | "payment">("date");
-
-  const handleSelectSet = (set: Set) => {
-    if (set.status === "reserved") return;
-    
-    setSelectedSets(prev => {
-      const isSelected = prev.some(s => s.id === set.id);
-      if (isSelected) {
-        return prev.filter(s => s.id !== set.id);
-      } else {
-        return [...prev, set];
-      }
-    });
-  };
-
-  const handleRemoveSet = (setId: string) => {
-    setSelectedSets(prev => prev.filter(s => s.id !== setId));
-  };
-
-  const handleZoneSelect = (zone: Zone) => {
-    setSelectedZone(zone);
-    // Clear selected sets when changing zone
-    setSelectedSets([]);
-  };
-
-  const getSetsForZone = (zoneName: string, sets: Set[]) => {
-    return sets.filter(set => set.name.startsWith(zoneName));
-  };
-
-  const getSetsByRow = (zoneSets: Set[]) => {
-    const rows = new Map<number, Set[]>();
-    
-    zoneSets.forEach(set => {
-      const rowNum = set.row_number || 0;
-      if (!rows.has(rowNum)) {
-        rows.set(rowNum, []);
-      }
-      rows.get(rowNum)?.push(set);
-    });
-    
-    // Sort rows by row number and sets by position within each row
-    return Array.from(rows.entries())
-      .sort(([a], [b]) => a - b)
-      .map(([rowNum, sets]) => ({
-        rowNum,
-        sets: sets.sort((a, b) => (a.position || 0) - (b.position || 0))
-      }));
-  };
 
   const handleReservation = async () => {
     if (!user || !clientId) {
-      setShowGuestForm(true);
-      return;
+      return false;
     }
     
     if (selectedSets.length === 0) {
@@ -81,7 +28,7 @@ export function useReservation(
         description: "Please select at least one beach set to reserve.",
         variant: "destructive",
       });
-      return;
+      return false;
     }
     
     try {
@@ -135,6 +82,7 @@ export function useReservation(
       
       // Redirect to reservation confirmation page
       navigate(`/reservations/${reservation.id}`);
+      return true;
       
     } catch (error: any) {
       console.error("Reservation error:", error);
@@ -143,6 +91,7 @@ export function useReservation(
         description: error.message,
         variant: "destructive",
       });
+      return false;
     } finally {
       setIsProcessing(false);
     }
@@ -159,7 +108,7 @@ export function useReservation(
         description: "Please select at least one beach set to reserve.",
         variant: "destructive",
       });
-      return;
+      return false;
     }
     
     try {
@@ -217,6 +166,7 @@ export function useReservation(
       
       // Redirect to reservation confirmation page
       navigate(`/reservations/${reservation.id}`);
+      return true;
       
     } catch (error: any) {
       console.error("Guest reservation error:", error);
@@ -225,46 +175,14 @@ export function useReservation(
         description: error.message,
         variant: "destructive",
       });
+      return false;
     } finally {
       setIsProcessing(false);
-      setShowGuestForm(false);
     }
-  };
-
-  const goToStep = (step: "date" | "location" | "payment") => {
-    if (step === "location" && !selectedDate) {
-      toast({
-        title: "Please select a date first",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (step === "payment" && selectedSets.length === 0) {
-      toast({
-        title: "Please select at least one set",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setCurrentStep(step);
   };
 
   return {
-    selectedZone,
-    selectedSets,
-    currentStep,
-    isProcessing,
-    showGuestForm,
-    handleSelectSet,
-    handleRemoveSet,
-    handleZoneSelect,
-    getSetsForZone,
-    getSetsByRow,
     handleReservation,
-    handleGuestReservation,
-    goToStep,
-    setShowGuestForm
+    handleGuestReservation
   };
 }
