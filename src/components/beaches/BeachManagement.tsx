@@ -1,6 +1,6 @@
 
-import { useState } from "react";
-import { Beach, Set } from "@/types";
+import { useState, useEffect } from "react";
+import { Beach, Set, Zone } from "@/types";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { BeachForm } from "./BeachForm";
 import { BeachLayout } from "./BeachLayout";
-import { ChevronDown, ChevronUp, Edit, MapPin, Plus, Trash } from "lucide-react";
+import { ChevronDown, ChevronUp, Edit, MapPin, Plus, Trash, Grid3X3 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -24,6 +24,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { BeachSetForm } from "./BeachSetForm";
+import { ZoneForm } from "./ZoneForm";
+import { ZoneManagement } from "./ZoneManagement";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface BeachManagementProps {
   beach: Beach;
@@ -35,7 +38,9 @@ export function BeachManagement({ beach, onUpdate }: BeachManagementProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [sets, setSets] = useState<Set[]>([]);
+  const [zones, setZones] = useState<Zone[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [showZoneDialog, setShowZoneDialog] = useState(false);
 
   const handleBeachUpdate = (updatedBeach: Beach) => {
     setIsEditing(false);
@@ -99,6 +104,30 @@ export function BeachManagement({ beach, onUpdate }: BeachManagementProps) {
     }
   };
 
+  const fetchZones = async () => {
+    if (!isExpanded) return;
+    
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from("zones")
+        .select("*")
+        .eq("beach_id", beach.id)
+        .order("created_at");
+
+      if (error) throw error;
+      setZones(data || []);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: `Failed to load beach zones: ${error.message}`,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSetAdded = (newSet: Set) => {
     setSets(prev => [...prev, newSet]);
     toast({
@@ -107,13 +136,36 @@ export function BeachManagement({ beach, onUpdate }: BeachManagementProps) {
     });
   };
 
+  const handleZoneAdded = (newZone: Zone) => {
+    setZones(prev => [...prev, newZone]);
+    setShowZoneDialog(false);
+    toast({
+      title: "Zone created",
+      description: `${newZone.name} zone has been created with ${newZone.rows * newZone.spots_per_row} sets.`,
+    });
+    // Refetch sets to reflect the automatically created sets from the trigger
+    fetchSets();
+  };
+
+  const refreshData = () => {
+    fetchZones();
+    fetchSets();
+  };
+
   const toggleExpand = () => {
     const newExpandState = !isExpanded;
     setIsExpanded(newExpandState);
     if (newExpandState) {
+      fetchZones();
       fetchSets();
     }
   };
+
+  useEffect(() => {
+    if (isExpanded) {
+      refreshData();
+    }
+  }, [isExpanded]);
 
   return (
     <Card>
@@ -162,28 +214,78 @@ export function BeachManagement({ beach, onUpdate }: BeachManagementProps) {
           </div>
 
           <div className="space-y-4">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button size="sm">
-                  <Plus className="h-4 w-4 mr-1" /> Add Beach Set
-                </Button>
-              </DialogTrigger>
+            <div className="flex items-center gap-4 mb-6">
+              <Button onClick={() => setShowZoneDialog(true)}>
+                <Grid3X3 className="h-4 w-4 mr-1" /> Create Zone
+              </Button>
+              
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline">
+                    <Plus className="h-4 w-4 mr-1" /> Add Individual Set
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Add Beach Set</DialogTitle>
+                    <DialogDescription>
+                      Create a new umbrella and chair set for {beach.name}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <BeachSetForm beachId={beach.id} onSuccess={handleSetAdded} />
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            <Dialog open={showZoneDialog} onOpenChange={setShowZoneDialog}>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Add Beach Set</DialogTitle>
+                  <DialogTitle>Create New Zone</DialogTitle>
                   <DialogDescription>
-                    Create a new umbrella and chair set for {beach.name}
+                    Define a new zone with multiple umbrella sets
                   </DialogDescription>
                 </DialogHeader>
-                <BeachSetForm beachId={beach.id} onSuccess={handleSetAdded} />
+                <ZoneForm beachId={beach.id} onSuccess={handleZoneAdded} />
               </DialogContent>
             </Dialog>
 
-            {sets.length > 0 ? (
-              <BeachLayout sets={sets} beachName={beach.name} />
-            ) : (
-              <p>No sets have been added to this beach yet.</p>
-            )}
+            <Tabs defaultValue="zones" className="w-full">
+              <TabsList className="w-full grid grid-cols-2">
+                <TabsTrigger value="zones">Zones</TabsTrigger>
+                <TabsTrigger value="sets">All Sets</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="zones" className="mt-4">
+                {zones.length > 0 ? (
+                  <div className="space-y-2">
+                    {zones.map(zone => (
+                      <ZoneManagement 
+                        key={zone.id} 
+                        zone={zone} 
+                        onUpdate={refreshData}
+                        sets={sets.filter(set => 
+                          set.name.startsWith(zone.name)
+                        )}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-center py-8 text-muted-foreground">
+                    No zones have been created yet. Create a zone to automatically generate umbrella sets.
+                  </p>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="sets" className="mt-4">
+                {sets.length > 0 ? (
+                  <BeachLayout sets={sets} beachName={beach.name} />
+                ) : (
+                  <p className="text-center py-8 text-muted-foreground">
+                    No sets have been added to this beach yet.
+                  </p>
+                )}
+              </TabsContent>
+            </Tabs>
           </div>
         </CardContent>
       )}

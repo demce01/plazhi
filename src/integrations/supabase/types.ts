@@ -241,6 +241,47 @@ export type Database = {
           },
         ]
       }
+      zones: {
+        Row: {
+          beach_id: string
+          created_at: string | null
+          id: string
+          name: string
+          price: number
+          rows: number
+          spots_per_row: number
+          updated_at: string | null
+        }
+        Insert: {
+          beach_id: string
+          created_at?: string | null
+          id?: string
+          name: string
+          price: number
+          rows: number
+          spots_per_row: number
+          updated_at?: string | null
+        }
+        Update: {
+          beach_id?: string
+          created_at?: string | null
+          id?: string
+          name?: string
+          price?: number
+          rows?: number
+          spots_per_row?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "zones_beach_id_fkey"
+            columns: ["beach_id"]
+            isOneToOne: false
+            referencedRelation: "beaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
