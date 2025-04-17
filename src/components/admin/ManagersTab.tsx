@@ -90,7 +90,7 @@ export function ManagersTab({ managers, beaches, onUpdate }: ManagersTabProps) {
       </div>
       
       {successMessage && (
-        <Alert variant="success" className="bg-green-50 border-green-200">
+        <Alert variant="default" className="bg-green-50 border-green-200">
           <CheckCircle className="h-4 w-4 text-green-600" />
           <AlertTitle>Success</AlertTitle>
           <AlertDescription>{successMessage}</AlertDescription>
