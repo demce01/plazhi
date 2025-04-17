@@ -24,9 +24,13 @@ export function useManagerForm(onSuccess: () => void) {
     try {
       setIsLoading(true);
       
-      console.log("Creating new manager with values:", values);
+      console.log("Creating new manager with values:", { 
+        email: values.email, 
+        fullName: values.fullName,
+        beach_id: values.beach_id 
+      });
       
-      // First create the auth user using regular signup flow instead of admin API
+      // First create the auth user using Supabase Auth API
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: values.email,
         password: values.password,
@@ -45,7 +49,7 @@ export function useManagerForm(onSuccess: () => void) {
         throw new Error("Failed to create user account");
       }
 
-      console.log("Created auth user:", authData.user);
+      console.log("Created auth user:", authData.user.id);
 
       // Create a new manager record linked to the auth user
       const { data: managerData, error: managerError } = await supabase
@@ -57,24 +61,19 @@ export function useManagerForm(onSuccess: () => void) {
         .select();
       
       if (managerError) {
-        // If manager creation fails, we should clean up the auth user
-        // Note: We can't delete users from the client, so we'll just log this 
-        // and admin would need to clean up manually if needed
-        console.error("Failed to create manager record. User was created but manager record failed:", managerError);
+        console.error("Failed to create manager record:", managerError);
         throw managerError;
       }
       
-      if (managerData && managerData.length > 0) {
-        console.log("Created manager record:", managerData);
-        
-        toast({
-          title: "Manager account created",
-          description: `New manager account created for ${values.email}. An email confirmation was sent.`,
-        });
-        
-        form.reset();
-        onSuccess();
-      }
+      console.log("Created manager record:", managerData);
+      
+      toast({
+        title: "Manager account created",
+        description: `New manager account for ${values.fullName} created successfully. An email verification has been sent to ${values.email}.`,
+      });
+      
+      form.reset();
+      onSuccess();
     } catch (error: any) {
       console.error("Error creating manager:", error);
       toast({

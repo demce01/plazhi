@@ -28,10 +28,14 @@ export function useManagerOperations(onUpdate: () => void) {
       
       console.log("Manager updated:", data);
       
+      const beachName = beachId && beachId !== "none" 
+        ? getBeachName(beachId, beaches)
+        : null;
+        
       toast({
         title: "Manager updated",
-        description: beachId && beachId !== "none" 
-          ? `Manager assigned to ${getBeachName(beachId, beaches)}`
+        description: beachName 
+          ? `Manager assigned to ${beachName}`
           : "Manager removed from beach assignment",
       });
       

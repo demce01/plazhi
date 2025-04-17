@@ -8,6 +8,7 @@ import {
   CardHeader, 
   CardTitle 
 } from "@/components/ui/card";
+import { UserPlus } from "lucide-react";
 
 interface ManagerCreationCardProps {
   beaches: Beach[];
@@ -16,11 +17,14 @@ interface ManagerCreationCardProps {
 
 export function ManagerCreationCard({ beaches, onSuccess }: ManagerCreationCardProps) {
   return (
-    <Card>
+    <Card className="border-primary/20">
       <CardHeader className="pb-2">
-        <CardTitle>Create New Manager</CardTitle>
+        <div className="flex items-center space-x-2">
+          <UserPlus className="h-5 w-5 text-primary" />
+          <CardTitle>Create New Manager</CardTitle>
+        </div>
         <CardDescription>
-          Add a new manager and optionally assign them to a beach
+          Create a manager account with login credentials and optional beach assignment
         </CardDescription>
       </CardHeader>
       <CardContent>
