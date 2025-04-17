@@ -51,8 +51,22 @@ export function ManagerForm({ beaches, onSuccess }: ManagerFormProps) {
       
       console.log("Creating new manager with email:", values.email);
       
+      // Get current user to verify admin status
+      const { data: authData } = await supabase.auth.getUser();
+      
+      if (!authData.user) {
+        throw new Error("You must be logged in to create managers");
+      }
+      
+      // Verify admin role from JWT claims
+      const adminRole = authData.user.app_metadata?.role === 'admin';
+      
+      if (!adminRole) {
+        throw new Error("Only admin users can create managers");
+      }
+      
       // 1. Create a new user with the manager email/password
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      const { data: signUpData, error: authError } = await supabase.auth.signUp({
         email: values.email,
         password: values.password,
         options: {
@@ -65,17 +79,17 @@ export function ManagerForm({ beaches, onSuccess }: ManagerFormProps) {
       
       if (authError) throw authError;
       
-      if (!authData.user) {
+      if (!signUpData.user) {
         throw new Error("Failed to create user account");
       }
       
-      console.log("Created auth user with ID:", authData.user.id);
+      console.log("Created auth user with ID:", signUpData.user.id);
       
       // 2. Create a new manager record
       const { data: managerData, error: managerError } = await supabase
         .from("managers")
         .insert({
-          user_id: authData.user.id,
+          user_id: signUpData.user.id,
           beach_id: values.beach_id === "none" ? null : values.beach_id,
         })
         .select();

@@ -81,43 +81,54 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUserSession(prev => ({ ...prev, loading: true }));
     
     try {
-      // Get client data
-      const { data: clientData, error: clientError } = await supabase
-        .from('clients')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle();
-        
-      if (clientError) throw clientError;
-      
-      // Get manager data
-      const { data: managerData, error: managerError } = await supabase
-        .from('managers')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle();
-        
-      if (managerError) throw managerError;
-      
       // Get user metadata for role check
       const { data: userData, error: userError } = await supabase.auth.getUser();
       if (userError) throw userError;
-      
-      // Determine role based on metadata and database records
-      let role: UserRole = 'client'; // Default role
       
       // Check for admin role via app_metadata
       const appMetadata = userData?.user?.app_metadata;
       const userMetadata = userData?.user?.user_metadata;
       
+      // Default role
+      let role: UserRole = 'client';
+      let clientId = null;
+      let managerId = null;
+      
+      // Check if user is an admin first
       if (appMetadata && appMetadata.role === 'admin') {
         role = 'admin';
-      } else if (userMetadata && userMetadata.role === 'manager') {
-        // Check user_metadata for manager role (set during signup)
+      } 
+      // Then check if user is a manager
+      else if (userMetadata && userMetadata.role === 'manager') {
         role = 'manager';
-      } else if (managerData) {
-        // Fallback to checking the managers table
-        role = 'manager';
+        
+        // Get manager data if this is a manager
+        const { data: managerData, error: managerError } = await supabase
+          .from('managers')
+          .select('*')
+          .eq('user_id', userId)
+          .maybeSingle();
+          
+        if (managerError) throw managerError;
+        
+        if (managerData) {
+          managerId = managerData.id;
+        }
+      } 
+      // Then check if user is a client
+      else {
+        // Get client data
+        const { data: clientData, error: clientError } = await supabase
+          .from('clients')
+          .select('*')
+          .eq('user_id', userId)
+          .maybeSingle();
+          
+        if (clientError) throw clientError;
+        
+        if (clientData) {
+          clientId = clientData.id;
+        }
       }
       
       console.log("User role determined:", role, "User metadata:", userMetadata);
@@ -128,8 +139,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           email: user?.email,
         },
         role,
-        clientId: clientData?.id || null,
-        managerId: managerData?.id || null,
+        clientId,
+        managerId,
         loading: false,
       });
     } catch (error) {
