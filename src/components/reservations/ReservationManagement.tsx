@@ -38,14 +38,19 @@ interface ReservationManagementProps {
   activateReservationsTab?: () => void;
 }
 
+// Define interface for joined reservation data with beach
+interface ReservationWithBeach extends Reservation {
+  beach_name?: string;
+}
+
 export function ReservationManagement({ 
   beaches,
   activateReservationsTab
 }: ReservationManagementProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [reservations, setReservations] = useState<Reservation[]>([]);
-  const [filteredReservations, setFilteredReservations] = useState<Reservation[]>([]);
+  const [reservations, setReservations] = useState<ReservationWithBeach[]>([]);
+  const [filteredReservations, setFilteredReservations] = useState<ReservationWithBeach[]>([]);
   
   // Filters
   const [searchQuery, setSearchQuery] = useState("");
@@ -69,7 +74,7 @@ export function ReservationManagement({
         .from("reservations")
         .select(`
           *,
-          beach:beach_id (
+          beaches:beach_id (
             id,
             name
           )
@@ -78,8 +83,16 @@ export function ReservationManagement({
       
       if (error) throw error;
       
-      setReservations(data || []);
-      setFilteredReservations(data || []);
+      // Transform data to include beach_name for easier access
+      const reservationsWithBeach = data?.map(reservation => {
+        return {
+          ...reservation,
+          beach_name: (reservation.beaches as any)?.name || "Unknown Beach"
+        };
+      }) || [];
+      
+      setReservations(reservationsWithBeach);
+      setFilteredReservations(reservationsWithBeach);
     } catch (error: any) {
       toast({
         title: "Error loading reservations",
@@ -292,7 +305,7 @@ export function ReservationManagement({
                         </div>
                       </TableCell>
                       <TableCell>
-                        {(reservation.beach as any)?.name || "Unknown Beach"}
+                        {reservation.beach_name || "Unknown Beach"}
                       </TableCell>
                       <TableCell>
                         {getStatusBadge(reservation.status || 'pending')}
