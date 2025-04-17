@@ -106,8 +106,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       
       // Check for admin role (via JWT)
-      const { data: { role: jwtRole } } = await supabase.auth.getUser();
-      if (jwtRole === 'admin') {
+      const { data } = await supabase.auth.getUser();
+      // Fix: properly handle the JWT claims for role checking
+      const userMetadata = data?.user?.app_metadata;
+      const isAdmin = userMetadata && userMetadata.role === 'admin';
+      
+      if (isAdmin) {
         role = 'admin';
       }
       
