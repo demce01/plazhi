@@ -59,14 +59,24 @@ export default function AdminDashboard() {
   const fetchAllManagers = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      console.log("Fetching managers...");
+      
+      // Fetch manager records from the managers table
+      const { data: managerData, error: managerError } = await supabase
         .from('managers')
         .select('*');
       
-      if (error) throw error;
+      if (managerError) throw managerError;
       
-      console.log("Fetched managers:", data);
-      setManagers(data || []);
+      // Check if we actually retrieved any managers
+      console.log("Fetched manager records:", managerData);
+      
+      if (managerData && managerData.length > 0) {
+        setManagers(managerData);
+      } else {
+        console.log("No manager records found in database");
+        setManagers([]);
+      }
     } catch (error: any) {
       console.error("Error loading managers:", error);
       toast({

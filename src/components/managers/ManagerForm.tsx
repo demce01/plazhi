@@ -47,6 +47,8 @@ export function ManagerForm({ beaches, onSuccess }: ManagerFormProps) {
     try {
       setIsLoading(true);
       
+      console.log("Creating new manager with email:", values.email);
+      
       // 1. Create a new user with the manager email/password
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: values.email,
@@ -64,15 +66,20 @@ export function ManagerForm({ beaches, onSuccess }: ManagerFormProps) {
         throw new Error("Failed to create user account");
       }
       
+      console.log("Created auth user with ID:", authData.user.id);
+      
       // 2. Create a new manager record
-      const { error: managerError } = await supabase
+      const { data: managerData, error: managerError } = await supabase
         .from("managers")
         .insert({
           user_id: authData.user.id,
           beach_id: values.beach_id === "none" ? null : values.beach_id,
-        });
+        })
+        .select();
       
       if (managerError) throw managerError;
+      
+      console.log("Created manager record:", managerData);
       
       toast({
         title: "Manager created",
@@ -83,6 +90,7 @@ export function ManagerForm({ beaches, onSuccess }: ManagerFormProps) {
       onSuccess();
       
     } catch (error: any) {
+      console.error("Error creating manager:", error);
       toast({
         title: "Failed to create manager",
         description: error.message,

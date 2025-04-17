@@ -35,12 +35,12 @@ export function ManagerManagement({ managers, beaches, onUpdate }: ManagerManage
   const [showForm, setShowForm] = useState(false);
   const [updating, setUpdating] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [localManagers, setLocalManagers] = useState<Manager[]>(managers);
+  const [localManagers, setLocalManagers] = useState<Manager[]>([]);
 
   // Update local managers when the prop changes
   useEffect(() => {
-    setLocalManagers(managers);
     console.log("ManagerManagement received managers:", managers);
+    setLocalManagers(managers);
   }, [managers]);
 
   const getBeachName = (beachId: string | null) => {
@@ -84,8 +84,6 @@ export function ManagerManagement({ managers, beaches, onUpdate }: ManagerManage
 
   // If we have no managers, let's fetch them directly
   const fetchManagers = async () => {
-    if (localManagers.length > 0) return;
-    
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -95,9 +93,7 @@ export function ManagerManagement({ managers, beaches, onUpdate }: ManagerManage
       if (error) throw error;
       
       console.log("Directly fetched managers:", data);
-      if (data) {
-        setLocalManagers(data);
-      }
+      setLocalManagers(data || []);
     } catch (error: any) {
       console.error("Error fetching managers:", error);
       toast({
