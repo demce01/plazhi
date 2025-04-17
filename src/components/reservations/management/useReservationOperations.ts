@@ -86,11 +86,15 @@ export function useReservationOperations(onReservationsChanged: () => Promise<vo
   };
 
   const openCancelDialog = (reservation: Reservation) => {
+    console.log("Opening cancel dialog for reservation:", reservation);
     setSelectedReservation(reservation);
   };
 
   const handleCancelComplete = async () => {
-    if (!selectedReservation) return;
+    if (!selectedReservation) {
+      console.error("No reservation selected for cancellation");
+      return;
+    }
     
     try {
       setIsProcessing(true);
@@ -105,7 +109,10 @@ export function useReservationOperations(onReservationsChanged: () => Promise<vo
         })
         .eq("id", selectedReservation.id);
       
-      if (error) throw error;
+      if (error) {
+        console.error("Cancel error:", error);
+        throw error;
+      }
       
       sonnerToast.success("Reservation cancelled successfully");
       
