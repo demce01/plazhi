@@ -27,48 +27,42 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const initializeAuth = async () => {
       setLoading(true);
       
-      try {
-        // Get initial session
-        const { data: { session } } = await supabase.auth.getSession();
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          await handleUserAuthenticated(session.user.id, session.user.email);
-        } else {
-          setUserSession(prev => ({ ...prev, loading: false }));
-        }
-        
-        // Listen for auth changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
-          async (event, session) => {
-            console.log("Auth state changed:", event);
-            setSession(session);
-            setUser(session?.user ?? null);
-            
-            if (event === 'SIGNED_IN' && session?.user) {
-              await handleUserAuthenticated(session.user.id, session.user.email);
-            } else if (event === 'SIGNED_OUT') {
-              setUserSession({
-                user: null,
-                role: null,
-                clientId: null,
-                managerId: null,
-                loading: false,
-              });
-            }
-          }
-        );
-        
-        return () => {
-          subscription.unsubscribe();
-        };
-      } catch (error) {
-        console.error("Auth initialization error:", error);
+      // Get initial session
+      const { data: { session } } = await supabase.auth.getSession();
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        await handleUserAuthenticated(session.user.id, session.user.email);
+      } else {
         setUserSession(prev => ({ ...prev, loading: false }));
-      } finally {
-        setLoading(false);
       }
+      
+      // Listen for auth changes
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          setSession(session);
+          setUser(session?.user ?? null);
+          
+          if (event === 'SIGNED_IN' && session?.user) {
+            await handleUserAuthenticated(session.user.id, session.user.email);
+          } else if (event === 'SIGNED_OUT') {
+            setUserSession({
+              user: null,
+              role: null,
+              clientId: null,
+              managerId: null,
+              loading: false,
+            });
+          }
+        }
+      );
+      
+      setLoading(false);
+      
+      return () => {
+        subscription.unsubscribe();
+      };
     };
     
     initializeAuth();

@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -34,26 +33,24 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            {/* Public routes */}
             <Route element={<MainLayout />}>
               <Route path="/" element={<Index />} />
               <Route path="/auth/login" element={<Login />} />
               <Route path="/auth/register" element={<Register />} />
-              <Route path="/beaches" element={<BeachesList />} />
-              <Route path="/beaches/:id" element={<BeachDetail />} />
+              <Route path="/beaches/:id/reserve" element={<BeachDetail />} />
             </Route>
 
-            {/* Protected routes with DashboardLayout */}
+            {/* Dashboard Layout */}
             <Route element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["admin", "manager"]}>
                 <DashboardLayout />
               </ProtectedRoute>
             }>
               <Route path="/dashboard" element={<DashboardOverview />} />
+              <Route path="/beaches" element={<BeachesList />} />
+              <Route path="/beaches/:id" element={<BeachDetail />} />
               <Route path="/reservations" element={<MyReservations />} />
               <Route path="/reservations/:id" element={<ReservationDetail />} />
-              
-              {/* Role-protected routes */}
               <Route path="/manager" element={
                 <ProtectedRoute allowedRoles={["manager", "admin"]}>
                   <ManagerDashboard />
