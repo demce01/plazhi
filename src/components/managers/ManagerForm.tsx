@@ -22,6 +22,7 @@ import { Loader2 } from "lucide-react";
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+  fullName: z.string().min(2, { message: "Full name is required" }),
   beach_id: z.string().optional(),
 });
 
@@ -39,6 +40,7 @@ export function ManagerForm({ beaches, onSuccess }: ManagerFormProps) {
     defaultValues: {
       email: "",
       password: "",
+      fullName: "",
       beach_id: undefined,
     },
   });
@@ -55,7 +57,8 @@ export function ManagerForm({ beaches, onSuccess }: ManagerFormProps) {
         password: values.password,
         options: {
           data: {
-            role: 'manager' // Set user metadata role to 'manager'
+            role: 'manager', // Set user metadata role to 'manager'
+            full_name: values.fullName // Add full name to user metadata
           }
         }
       });
@@ -112,6 +115,19 @@ export function ManagerForm({ beaches, onSuccess }: ManagerFormProps) {
               <FormLabel>Email</FormLabel>
               <FormControl>
                 <Input placeholder="manager@example.com" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="fullName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Full Name</FormLabel>
+              <FormControl>
+                <Input placeholder="John Doe" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
