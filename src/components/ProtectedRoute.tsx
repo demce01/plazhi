@@ -22,6 +22,14 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
   }
 
   if (allowedRoles && role && !allowedRoles.includes(role)) {
+    // Redirect unauthorized users to appropriate pages based on their role
+    if (role === 'client') {
+      return <Navigate to="/reservations" replace />;
+    } else if (role === 'manager') {
+      return <Navigate to="/manager" replace />;
+    } else if (role === 'admin') {
+      return <Navigate to="/admin" replace />;
+    }
     return <Navigate to="/" replace />;
   }
 

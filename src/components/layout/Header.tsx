@@ -7,6 +7,47 @@ export function Header() {
   const { userSession, signOut } = useAuth();
   const { user, role } = userSession;
 
+  // Determine navigation links based on user role
+  const getNavLinks = () => {
+    const links = [];
+    
+    // All users can see beaches
+    links.push(
+      <Link key="beaches" to="/beaches" className="text-gray-500 hover:text-gray-900 font-medium">
+        Beaches
+      </Link>
+    );
+    
+    // All authenticated users can see their reservations
+    if (user) {
+      if (role === 'client') {
+        links.push(
+          <Link key="reservations" to="/reservations" className="text-gray-500 hover:text-gray-900 font-medium">
+            My Reservations
+          </Link>
+        );
+      }
+      
+      if (role === 'manager') {
+        links.push(
+          <Link key="manager" to="/manager" className="text-gray-500 hover:text-gray-900 font-medium">
+            Manager Dashboard
+          </Link>
+        );
+      }
+      
+      if (role === 'admin') {
+        links.push(
+          <Link key="admin" to="/admin" className="text-gray-500 hover:text-gray-900 font-medium">
+            Admin Dashboard
+          </Link>
+        );
+      }
+    }
+    
+    return links;
+  };
+
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -17,24 +58,7 @@ export function Header() {
             </Link>
           </div>
           <nav className="hidden md:flex space-x-10">
-            <Link to="/beaches" className="text-gray-500 hover:text-gray-900 font-medium">
-              Beaches
-            </Link>
-            {user && (
-              <Link to="/reservations" className="text-gray-500 hover:text-gray-900 font-medium">
-                My Reservations
-              </Link>
-            )}
-            {role === 'manager' && (
-              <Link to="/manager" className="text-gray-500 hover:text-gray-900 font-medium">
-                Manager Dashboard
-              </Link>
-            )}
-            {role === 'admin' && (
-              <Link to="/admin" className="text-gray-500 hover:text-gray-900 font-medium">
-                Admin Dashboard
-              </Link>
-            )}
+            {getNavLinks()}
           </nav>
           <div className="flex items-center">
             {user ? (
