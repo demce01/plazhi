@@ -60,7 +60,7 @@ export default function AdminDashboard() {
         .from('managers')
         .select(`
           *,
-          beach:beaches(name)
+          beaches(id, name)
         `);
       
       if (error) throw error;
@@ -82,6 +82,15 @@ export default function AdminDashboard() {
       title: "Beach created",
       description: `${beach.name} has been successfully created.`,
     });
+  };
+
+  // Helper function to get beach name
+  const getBeachName = (manager: Manager) => {
+    if (!manager.beach_id) return "Not assigned to any beach";
+    
+    // Find the beach in the beaches array
+    const beach = beaches.find(b => b.id === manager.beach_id);
+    return beach ? beach.name : "Unknown Beach";
   };
 
   return (
@@ -143,7 +152,7 @@ export default function AdminDashboard() {
                   <CardContent>
                     <p className="font-medium">
                       {manager.beach_id ? (
-                        <>Managing: {(manager.beach as any)?.name || "Unknown Beach"}</>
+                        <>Managing: {getBeachName(manager)}</>
                       ) : (
                         "Not assigned to any beach"
                       )}
