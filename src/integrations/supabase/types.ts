@@ -9,7 +9,238 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      beaches: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          location: string | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          location?: string | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          location?: string | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      clients: {
+        Row: {
+          created_at: string | null
+          id: string
+          loyalty_points: number | null
+          phone: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          loyalty_points?: number | null
+          phone?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          loyalty_points?: number | null
+          phone?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      managers: {
+        Row: {
+          beach_id: string | null
+          created_at: string | null
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          beach_id?: string | null
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          beach_id?: string | null
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "managers_beach_id_fkey"
+            columns: ["beach_id"]
+            isOneToOne: false
+            referencedRelation: "beaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reservation_sets: {
+        Row: {
+          created_at: string | null
+          id: string
+          price: number
+          reservation_id: string
+          set_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          price: number
+          reservation_id: string
+          set_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          price?: number
+          reservation_id?: string
+          set_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservation_sets_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservation_sets_set_id_fkey"
+            columns: ["set_id"]
+            isOneToOne: false
+            referencedRelation: "sets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reservations: {
+        Row: {
+          beach_id: string
+          client_id: string | null
+          confirmation_sent: boolean | null
+          created_at: string | null
+          guest_name: string | null
+          guest_phone: string | null
+          id: string
+          payment_amount: number
+          payment_status: string | null
+          reservation_date: string
+          status: string | null
+          stripe_session_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          beach_id: string
+          client_id?: string | null
+          confirmation_sent?: boolean | null
+          created_at?: string | null
+          guest_name?: string | null
+          guest_phone?: string | null
+          id?: string
+          payment_amount: number
+          payment_status?: string | null
+          reservation_date: string
+          status?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          beach_id?: string
+          client_id?: string | null
+          confirmation_sent?: boolean | null
+          created_at?: string | null
+          guest_name?: string | null
+          guest_phone?: string | null
+          id?: string
+          payment_amount?: number
+          payment_status?: string | null
+          reservation_date?: string
+          status?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservations_beach_id_fkey"
+            columns: ["beach_id"]
+            isOneToOne: false
+            referencedRelation: "beaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sets: {
+        Row: {
+          beach_id: string
+          created_at: string | null
+          id: string
+          name: string
+          position: number | null
+          price: number
+          row_number: number | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          beach_id: string
+          created_at?: string | null
+          id?: string
+          name: string
+          position?: number | null
+          price: number
+          row_number?: number | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          beach_id?: string
+          created_at?: string | null
+          id?: string
+          name?: string
+          position?: number | null
+          price?: number
+          row_number?: number | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sets_beach_id_fkey"
+            columns: ["beach_id"]
+            isOneToOne: false
+            referencedRelation: "beaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
