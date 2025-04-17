@@ -33,7 +33,7 @@ export async function fetchUserData(userId: string, userEmail: string | undefine
         .eq('user_id', userId)
         .maybeSingle();
         
-      if (managerError) throw managerError;
+      if (managerError && managerError.code !== 'PGRST116') throw managerError;
       
       if (managerData) {
         managerId = managerData.id;
@@ -48,7 +48,7 @@ export async function fetchUserData(userId: string, userEmail: string | undefine
         .eq('user_id', userId)
         .maybeSingle();
         
-      if (clientError) throw clientError;
+      if (clientError && clientError.code !== 'PGRST116') throw clientError;
       
       if (clientData) {
         clientId = clientData.id;
