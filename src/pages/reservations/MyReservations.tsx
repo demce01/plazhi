@@ -2,7 +2,7 @@
 import { useNavigate } from "react-router-dom";
 import { Loader2, Plus } from "lucide-react";
 import { useMyReservations } from "@/hooks/useMyReservations";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth"; // Updated import path
 import { Button } from "@/components/ui/button";
 import { ReservationCard } from "@/components/reservations/ReservationCard";
 import { Separator } from "@/components/ui/separator";
