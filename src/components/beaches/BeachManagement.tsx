@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Beach, Set, Zone } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -65,6 +66,7 @@ export function BeachManagement({ beach, onUpdate }: BeachManagementProps) {
     try {
       setIsLoading(true);
       
+      // Delete all zones belonging to this beach first
       const { error: zonesError } = await supabase
         .from("zones")
         .delete()
@@ -72,6 +74,7 @@ export function BeachManagement({ beach, onUpdate }: BeachManagementProps) {
       
       if (zonesError) throw zonesError;
       
+      // Delete all sets belonging to this beach
       const { error: setsError } = await supabase
         .from("sets")
         .delete()
@@ -79,6 +82,7 @@ export function BeachManagement({ beach, onUpdate }: BeachManagementProps) {
       
       if (setsError) throw setsError;
       
+      // Finally delete the beach itself
       const { error } = await supabase
         .from("beaches")
         .delete()
