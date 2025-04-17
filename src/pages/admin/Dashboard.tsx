@@ -2,7 +2,6 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { Loader2 } from "lucide-react";
-import { ManagersTab } from "@/components/admin/ManagersTab";
 import { useAdminDashboard } from "@/components/admin/useAdminDashboard";
 
 export default function AdminDashboard() {
@@ -13,8 +12,6 @@ export default function AdminDashboard() {
   const { 
     loading, 
     beaches,
-    managers, 
-    fetchAllManagers,
     fetchAllBeaches,
   } = useAdminDashboard();
 
@@ -30,19 +27,14 @@ export default function AdminDashboard() {
         <h1 className="text-3xl font-bold">Admin Dashboard</h1>
       </div>
 
-      {loading && managers.length === 0 ? (
+      {loading && beaches.length === 0 ? (
         <div className="flex justify-center p-10">
           <Loader2 className="h-10 w-10 animate-spin text-primary" />
         </div>
       ) : (
-        <ManagersTab 
-          managers={managers} 
-          beaches={beaches}
-          onUpdate={() => {
-            fetchAllManagers();
-            fetchAllBeaches();
-          }}
-        />
+        <div className="grid gap-4">
+          {/* Beach management content will be added here */}
+        </div>
       )}
     </div>
   );

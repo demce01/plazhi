@@ -63,38 +63,6 @@ export type Database = {
         }
         Relationships: []
       }
-      managers: {
-        Row: {
-          beach_id: string | null
-          created_at: string | null
-          id: string
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          beach_id?: string | null
-          created_at?: string | null
-          id?: string
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          beach_id?: string | null
-          created_at?: string | null
-          id?: string
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "managers_beach_id_fkey"
-            columns: ["beach_id"]
-            isOneToOne: false
-            referencedRelation: "beaches"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       reservation_sets: {
         Row: {
           created_at: string | null

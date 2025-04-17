@@ -6,9 +6,8 @@ import {
   LayoutDashboard,
   Umbrella,
   CalendarDays,
-  Users,
-  LogOut,
   Settings,
+  LogOut,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -35,8 +34,7 @@ const MenuItem = ({
 
 export function DashboardSidebar() {
   const navigate = useNavigate();
-  const { signOut, userSession } = useAuth();
-  const { role } = userSession;
+  const { signOut } = useAuth();
 
   const handleSignOut = async () => {
     await signOut();
@@ -61,12 +59,6 @@ export function DashboardSidebar() {
         <MenuItem to="/reservations" icon={CalendarDays}>
           Reservations
         </MenuItem>
-
-        {role === 'admin' && (
-          <MenuItem to="/admin" icon={Users}>
-            Managers
-          </MenuItem>
-        )}
 
         <MenuItem to="/settings" icon={Settings}>
           Settings

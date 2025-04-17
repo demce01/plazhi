@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,7 +13,6 @@ import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import BeachesList from "./pages/beaches/BeachesList";
 import BeachDetail from "./pages/beaches/BeachDetail";
-import ManagerDashboard from "./pages/manager/Dashboard";
 import AdminDashboard from "./pages/admin/Dashboard";
 import DashboardOverview from "./pages/dashboard/Overview";
 import ReservationDetail from "./pages/reservations/ReservationDetail";
@@ -42,7 +42,7 @@ const App = () => (
 
             {/* Dashboard Layout */}
             <Route element={
-              <ProtectedRoute allowedRoles={["admin", "manager"]}>
+              <ProtectedRoute allowedRoles={["admin"]}>
                 <DashboardLayout />
               </ProtectedRoute>
             }>
@@ -51,11 +51,6 @@ const App = () => (
               <Route path="/beaches/:id" element={<BeachDetail />} />
               <Route path="/reservations" element={<MyReservations />} />
               <Route path="/reservations/:id" element={<ReservationDetail />} />
-              <Route path="/manager" element={
-                <ProtectedRoute allowedRoles={["manager", "admin"]}>
-                  <ManagerDashboard />
-                </ProtectedRoute>
-              } />
               <Route path="/admin" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <AdminDashboard />
