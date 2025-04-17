@@ -1,5 +1,5 @@
 
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { PaymentStep } from "@/components/reservations/PaymentStep";
 
 export default function BeachDetail() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate(); // Added useNavigate hook
   const { userSession } = useAuth();
   
   // Custom hooks for beach data and reservation management

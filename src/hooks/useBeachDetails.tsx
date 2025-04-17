@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
-import { Beach, Set, Zone } from "@/types";
+import { Beach, Zone } from "@/types";
+import type { Set } from "@/types"; // Changed to type-only import to avoid conflict with global Set
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
