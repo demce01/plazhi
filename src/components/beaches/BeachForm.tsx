@@ -1,3 +1,4 @@
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -18,7 +19,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Beach } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
-import { useAuth } from "@/contexts/auth";
 
 // Form validation schema
 const beachSchema = z.object({
@@ -38,7 +38,6 @@ interface BeachFormProps {
 
 export function BeachForm({ beach, onSuccess }: BeachFormProps) {
   const { toast } = useToast();
-  const { userSession } = useAuth();
   const [loading, setLoading] = useState(false);
 
   // Initialize form with existing beach data or empty values
@@ -83,22 +82,6 @@ export function BeachForm({ beach, onSuccess }: BeachFormProps) {
           .single();
 
         if (error) throw error;
-
-        // If user is a manager, create manager-beach association
-        if (userSession.managerId && data) {
-          const { error: managerError } = await supabase
-            .from("managers")
-            .upsert({
-              id: userSession.managerId,
-              beach_id: data.id,
-              user_id: userSession.user?.id,
-            });
-
-          if (managerError) {
-            console.error("Error associating manager with beach:", managerError);
-          }
-        }
-
         onSuccess(data as Beach);
       }
     } catch (error: any) {

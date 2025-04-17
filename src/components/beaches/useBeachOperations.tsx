@@ -20,24 +20,6 @@ export function useBeachOperations(beach: Beach, onUpdate: () => void) {
     try {
       setIsLoading(true);
       
-      // First, check for any managers that might be assigned to this beach
-      const { data: managers, error: managersError } = await supabase
-        .from("managers")
-        .select("id")
-        .eq("beach_id", beach.id);
-        
-      if (managersError) throw managersError;
-      
-      // If there are managers assigned to this beach, unassign them
-      if (managers && managers.length > 0) {
-        const { error: updateError } = await supabase
-          .from("managers")
-          .update({ beach_id: null })
-          .eq("beach_id", beach.id);
-          
-        if (updateError) throw updateError;
-      }
-      
       // Delete all zones belonging to this beach
       const { error: zonesError } = await supabase
         .from("zones")

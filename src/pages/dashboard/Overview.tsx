@@ -19,16 +19,16 @@ export default function DashboardOverview() {
     },
   });
 
-  // Fetch total managers
-  const { data: managersData, isLoading: isLoadingManagers } = useQuery({
-    queryKey: ['managers-count'],
+  // Fetch total admins (instead of managers)
+  const { data: adminsData, isLoading: isLoadingAdmins } = useQuery({
+    queryKey: ['admins-count'],
     queryFn: async () => {
-      const { count, error } = await supabase
-        .from('managers')
-        .select('*', { count: 'exact', head: true });
+      const { data, error } = await supabase.auth.getUser();
       
       if (error) throw error;
-      return count || 0;
+      
+      // Count only admin users (this is a simplified approach)
+      return data?.user?.app_metadata?.role === 'admin' ? 1 : 0;
     },
   });
 
@@ -63,7 +63,7 @@ export default function DashboardOverview() {
     },
   });
 
-  const isLoading = isLoadingBeaches || isLoadingManagers || isLoadingReservations;
+  const isLoading = isLoadingBeaches || isLoadingAdmins || isLoadingReservations;
 
   if (isLoading) {
     return (
@@ -74,7 +74,7 @@ export default function DashboardOverview() {
   }
 
   const revenueChange = reservationsData?.lastMonth ? 
-    ((reservationsData.lastMonth / (reservationsData.total - reservationsData.lastMonth)) * 100).toFixed(1) : 
+    ((reservationsData.lastMonth / (reservationsData.total - reservationsData.lastMonth || 1)) * 100).toFixed(1) : 
     0;
 
   return (
@@ -128,13 +128,13 @@ export default function DashboardOverview() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Managers</CardTitle>
+            <CardTitle className="text-sm font-medium">Administrators</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{managersData}</div>
+            <div className="text-2xl font-bold">{adminsData}</div>
             <p className="text-xs text-muted-foreground">
-              Total registered managers
+              Total administrators
             </p>
           </CardContent>
         </Card>
