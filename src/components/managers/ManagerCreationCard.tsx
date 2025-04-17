@@ -17,7 +17,7 @@ interface ManagerCreationCardProps {
 export function ManagerCreationCard({ beaches, onSuccess }: ManagerCreationCardProps) {
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="pb-2">
         <CardTitle>Create New Manager</CardTitle>
         <CardDescription>
           Add a new manager and optionally assign them to a beach
