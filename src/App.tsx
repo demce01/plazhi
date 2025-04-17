@@ -15,11 +15,13 @@ import BeachesList from "./pages/beaches/BeachesList";
 import BeachDetail from "./pages/beaches/BeachDetail";
 import ManagerDashboard from "./pages/manager/Dashboard";
 import AdminDashboard from "./pages/admin/Dashboard";
+import DashboardOverview from "./pages/dashboard/Overview";
 import ReservationDetail from "./pages/reservations/ReservationDetail";
 import MyReservations from "./pages/reservations/MyReservations";
 
 // Layouts
 import { MainLayout } from "./components/layout/MainLayout";
+import { DashboardLayout } from "./components/layout/DashboardLayout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -34,10 +36,19 @@ const App = () => (
           <Routes>
             <Route element={<MainLayout />}>
               <Route path="/" element={<Index />} />
-              <Route path="/beaches" element={<BeachesList />} />
-              <Route path="/beaches/:id" element={<BeachDetail />} />
               <Route path="/auth/login" element={<Login />} />
               <Route path="/auth/register" element={<Register />} />
+            </Route>
+
+            {/* Dashboard Layout */}
+            <Route element={
+              <ProtectedRoute allowedRoles={["admin", "manager"]}>
+                <DashboardLayout />
+              </ProtectedRoute>
+            }>
+              <Route path="/dashboard" element={<DashboardOverview />} />
+              <Route path="/beaches" element={<BeachesList />} />
+              <Route path="/beaches/:id" element={<BeachDetail />} />
               <Route path="/reservations" element={<MyReservations />} />
               <Route path="/reservations/:id" element={<ReservationDetail />} />
               <Route path="/manager" element={
@@ -51,7 +62,7 @@ const App = () => (
                 </ProtectedRoute>
               } />
             </Route>
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
