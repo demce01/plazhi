@@ -5,9 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Reservation, Beach, Set } from "@/types";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Calendar, MapPin, CheckCircle2, Mail, Phone } from "lucide-react";
+import { Loader2, Calendar, MapPin, CheckCircle2, Mail, Phone, UserCheck } from "lucide-react";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 
 export default function ReservationDetail() {
   const { id } = useParams<{ id: string }>();
@@ -63,6 +64,32 @@ export default function ReservationDetail() {
 
   const formatReservationId = (id: string) => {
     return id.substring(0, 8).toUpperCase();
+  };
+
+  const handleCheckIn = async () => {
+    if (!reservation || !id) return;
+    
+    try {
+      const { error } = await supabase
+        .from("reservations")
+        .update({ checked_in: true })
+        .eq("id", id);
+      
+      if (error) throw error;
+      
+      setReservation({ ...reservation, checked_in: true });
+      
+      toast({
+        title: "Guest checked in",
+        description: "Guest has been successfully checked in",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error checking in guest",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   if (loading) {
@@ -128,6 +155,26 @@ export default function ReservationDetail() {
             <div>
               <p className="text-sm text-muted-foreground">Payment Status</p>
               <p className="capitalize">{reservation.payment_status}</p>
+            </div>
+            
+            <div>
+              <p className="text-sm text-muted-foreground">Check-in Status</p>
+              {reservation.checked_in ? (
+                <Badge variant="outline" className="bg-green-100 text-green-800 flex items-center w-fit">
+                  <UserCheck className="h-4 w-4 mr-1" /> Checked In
+                </Badge>
+              ) : (
+                reservation.status === 'confirmed' ? (
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="bg-yellow-100 text-yellow-800">Not Checked In</Badge>
+                    <Button size="sm" variant="outline" onClick={handleCheckIn} className="h-7">
+                      <UserCheck className="h-3 w-3 mr-1" /> Check-in
+                    </Button>
+                  </div>
+                ) : (
+                  <Badge variant="outline" className="bg-yellow-100 text-yellow-800">Not Checked In</Badge>
+                )
+              )}
             </div>
             
             <div>
