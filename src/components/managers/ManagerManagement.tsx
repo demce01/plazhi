@@ -46,14 +46,14 @@ export function ManagerManagement({ managers, beaches, onUpdate }: ManagerManage
       
       const { error } = await supabase
         .from("managers")
-        .update({ beach_id: beachId === "" ? null : beachId })
+        .update({ beach_id: beachId === "none" ? null : beachId })
         .eq("id", managerId);
       
       if (error) throw error;
       
       toast({
         title: "Manager updated",
-        description: beachId 
+        description: beachId && beachId !== "none" 
           ? `Manager assigned to ${getBeachName(beachId)}`
           : "Manager removed from beach assignment",
       });
@@ -145,7 +145,7 @@ export function ManagerManagement({ managers, beaches, onUpdate }: ManagerManage
                         </div>
                       ) : (
                         <Select 
-                          defaultValue={manager.beach_id || ""}
+                          defaultValue={manager.beach_id || "none"}
                           onValueChange={(value) => handleBeachAssignment(manager.id, value)}
                         >
                           <SelectTrigger>
@@ -154,7 +154,7 @@ export function ManagerManagement({ managers, beaches, onUpdate }: ManagerManage
                             </SelectValue>
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">Not assigned</SelectItem>
+                            <SelectItem value="none">Not assigned</SelectItem>
                             {beaches.map((beach) => (
                               <SelectItem key={beach.id} value={beach.id}>
                                 {beach.name}

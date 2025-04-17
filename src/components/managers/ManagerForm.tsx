@@ -133,7 +133,7 @@ export function ManagerForm({ beaches, onSuccess }: ManagerFormProps) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {beaches.map((beach) => (
                     <SelectItem key={beach.id} value={beach.id}>
                       {beach.name}
