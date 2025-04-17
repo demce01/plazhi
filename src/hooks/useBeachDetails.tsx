@@ -63,12 +63,16 @@ export function useBeachDetails(beachId: string | undefined) {
         .eq("beach_id", beachId)
         .order("name");
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching zones:", error);
+        throw error;
+      }
       
       console.log("Fetched zones:", data);
       
       setZones(data || []);
     } catch (error: any) {
+      console.error("Error in fetchBeachZones:", error);
       toast({
         title: "Error loading beach zones",
         description: error.message,
