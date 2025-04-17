@@ -1,11 +1,10 @@
-
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Beach } from "@/types";
 import { BeachCard } from "@/components/beaches/BeachCard";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 
 export default function Index() {
   const [featuredBeaches, setFeaturedBeaches] = useState<Beach[]>([]);
