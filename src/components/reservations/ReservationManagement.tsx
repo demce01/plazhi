@@ -166,23 +166,44 @@ export function ReservationManagement({
 
   const handleUpdateStatus = async (reservationId: string, newStatus: string) => {
     try {
+      console.log(`Updating reservation ${reservationId} status to ${newStatus}`);
+      
+      // Update the reservation status in the database
       const { error } = await supabase
         .from("reservations")
         .update({ status: newStatus })
         .eq("id", reservationId);
       
-      if (error) throw error;
+      if (error) {
+        console.error("Update error:", error);
+        throw error;
+      }
       
-      // Update local state
+      console.log("Database update successful");
+      
+      // Update local state to reflect the change
       setReservations(prev => 
-        prev.map(res => res.id === reservationId ? { ...res, status: newStatus } : res)
+        prev.map(res => 
+          res.id === reservationId ? { ...res, status: newStatus } : res
+        )
+      );
+      
+      // Also update filtered reservations to immediately reflect the change in UI
+      setFilteredReservations(prev => 
+        prev.map(res => 
+          res.id === reservationId ? { ...res, status: newStatus } : res
+        )
       );
       
       toast({
         title: "Reservation updated",
         description: `Reservation status changed to ${newStatus}`,
       });
+      
+      // Refresh reservations to ensure sync with database
+      fetchReservations();
     } catch (error: any) {
+      console.error("Failed to update reservation:", error);
       toast({
         title: "Error updating reservation",
         description: error.message,
