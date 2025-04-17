@@ -24,8 +24,28 @@ export function useTestManager(onSuccess: () => void) {
       if (!isAdmin) {
         throw new Error("Only admin users can create test managers");
       }
+
+      // Check if user already has a manager record
+      const { data: existingManager, error: checkError } = await supabase
+        .from('managers')
+        .select('id')
+        .eq('user_id', authData.user.id)
+        .maybeSingle();
+
+      if (checkError) {
+        throw checkError;
+      }
+
+      if (existingManager) {
+        toast({
+          title: "Manager already exists",
+          description: "You already have a manager account associated with your user",
+        });
+        onSuccess();
+        return;
+      }
       
-      console.log("Creating test manager...");
+      console.log("Creating test manager for user:", authData.user.id);
       
       // Create a test manager linked to the admin user
       const { data: testManager, error: createError } = await supabase

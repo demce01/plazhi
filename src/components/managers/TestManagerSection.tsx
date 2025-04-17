@@ -43,7 +43,7 @@ export function TestManagerSection({ onSuccess }: TestManagerSectionProps) {
       <div className="p-4 border rounded-lg bg-muted/30 mb-4">
         <h3 className="text-sm font-medium mb-2">Development Options</h3>
         <p className="text-xs text-muted-foreground mb-3">
-          Create a test manager using the current admin account for development purposes.
+          Create a test manager using your current account for development purposes.
         </p>
         <Button
           variant="secondary"

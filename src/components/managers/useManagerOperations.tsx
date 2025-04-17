@@ -37,6 +37,7 @@ export function useManagerOperations(onUpdate: () => void) {
       
       onUpdate();
     } catch (error: any) {
+      console.error("Failed to update manager:", error);
       toast({
         title: "Update failed",
         description: error.message,

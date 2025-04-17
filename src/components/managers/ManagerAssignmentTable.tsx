@@ -74,7 +74,7 @@ export function ManagerAssignmentTable({
       <TableBody>
         {localManagers.map(manager => (
           <TableRow key={manager.id}>
-            <TableCell className="font-medium">{manager.user_id}</TableCell>
+            <TableCell className="font-mono text-xs">{manager.id}</TableCell>
             <TableCell>
               {updating === manager.id ? (
                 <div className="flex items-center">

@@ -24,7 +24,7 @@ export function useManagerForm(onSuccess: () => void) {
     try {
       setIsLoading(true);
       
-      console.log("Creating new manager with email:", values.email);
+      console.log("Creating new manager with values:", values);
       
       // Get current user to verify admin status
       const { data: authData } = await supabase.auth.getUser();
@@ -39,12 +39,12 @@ export function useManagerForm(onSuccess: () => void) {
       if (!adminRole) {
         throw new Error("Only admin users can create managers");
       }
-      
-      // Create a new manager directly without creating a separate auth user
+
+      // Create a new manager record
       const { data: managerData, error: managerError } = await supabase
         .from("managers")
         .insert({
-          user_id: authData.user.id,
+          user_id: authData.user.id, // For now, link to the admin user
           beach_id: values.beach_id === "none" ? null : values.beach_id,
         })
         .select();
@@ -58,7 +58,7 @@ export function useManagerForm(onSuccess: () => void) {
         
         toast({
           title: "Manager created",
-          description: `New manager account created for ${values.email || 'current user'}`,
+          description: `New manager account created successfully`,
         });
         
         form.reset();
