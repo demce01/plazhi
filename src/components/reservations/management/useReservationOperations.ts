@@ -1,48 +1,37 @@
 
 import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import { Reservation } from "@/types";
-import { toast as sonnerToast } from "sonner";
 
-export function useReservationOperations(onReservationsChanged: () => Promise<void>) {
+export function useReservationOperations(onSuccess?: () => void) {
   const { toast } = useToast();
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleUpdateStatus = async (reservationId: string, newStatus: string) => {
+  const handleUpdateStatus = async (reservationId: string, status: string) => {
     try {
       setIsProcessing(true);
-      console.log(`Updating reservation ${reservationId} status to ${newStatus}`);
       
-      // Update the reservation status in the database
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("reservations")
         .update({ 
-          status: newStatus,
+          status,
           updated_at: new Date().toISOString()
         })
-        .eq("id", reservationId)
-        .select();
+        .eq("id", reservationId);
       
-      if (error) {
-        console.error("Update error:", error);
-        throw error;
-      }
-      
-      console.log("Update response:", data);
+      if (error) throw error;
       
       toast({
-        title: "Reservation updated",
-        description: `Reservation status changed to ${newStatus}`,
+        title: "Status updated",
+        description: `Reservation status updated to ${status}`,
       });
       
-      // Refresh the reservations list
-      await onReservationsChanged();
+      onSuccess?.();
     } catch (error: any) {
-      console.error("Failed to update reservation:", error);
       toast({
-        title: "Error updating reservation",
+        title: "Error updating status",
         description: error.message,
         variant: "destructive",
       });
@@ -54,33 +43,26 @@ export function useReservationOperations(onReservationsChanged: () => Promise<vo
   const handleCheckIn = async (reservationId: string) => {
     try {
       setIsProcessing(true);
-      console.log(`Checking in reservation ${reservationId}`);
       
-      // Update the reservation check-in status in the database
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("reservations")
         .update({ 
           checked_in: true,
           updated_at: new Date().toISOString()
         })
-        .eq("id", reservationId)
-        .select();
+        .eq("id", reservationId);
       
-      if (error) {
-        console.error("Check-in error:", error);
-        throw error;
-      }
+      if (error) throw error;
       
-      console.log("Check-in response:", data);
-      
-      sonnerToast.success("Guest checked in successfully");
-      
-      // Refresh the reservations list
-      await onReservationsChanged();
-    } catch (error: any) {
-      console.error("Failed to check in guest:", error);
       toast({
-        title: "Error checking in guest",
+        title: "Check-in successful",
+        description: "Guest has been checked in",
+      });
+      
+      onSuccess?.();
+    } catch (error: any) {
+      toast({
+        title: "Error checking in",
         description: error.message,
         variant: "destructive",
       });
@@ -90,46 +72,33 @@ export function useReservationOperations(onReservationsChanged: () => Promise<vo
   };
 
   const openCancelDialog = (reservation: Reservation) => {
-    console.log("Opening cancel dialog for reservation:", reservation);
     setSelectedReservation(reservation);
   };
 
   const handleCancelComplete = async () => {
-    if (!selectedReservation) {
-      console.error("No reservation selected for cancellation");
-      return;
-    }
+    if (!selectedReservation) return;
     
     try {
       setIsProcessing(true);
-      console.log(`Cancelling reservation ${selectedReservation.id}`);
       
-      // Directly cancel the reservation in the database
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("reservations")
         .update({ 
           status: "cancelled",
           updated_at: new Date().toISOString()
         })
-        .eq("id", selectedReservation.id)
-        .select();  // Add .select() to return the updated data
+        .eq("id", selectedReservation.id);
       
-      if (error) {
-        console.error("Cancel error:", error);
-        throw error;
-      }
+      if (error) throw error;
       
-      console.log("Cancellation response:", data);
+      toast({
+        title: "Reservation cancelled",
+        description: "The reservation has been cancelled successfully",
+      });
       
-      sonnerToast.success("Reservation cancelled successfully");
-      
-      // Refresh the reservations list
-      await onReservationsChanged();
-      
-      // Clear the selected reservation
       setSelectedReservation(null);
+      onSuccess?.();
     } catch (error: any) {
-      console.error("Failed to cancel reservation:", error);
       toast({
         title: "Error cancelling reservation",
         description: error.message,
