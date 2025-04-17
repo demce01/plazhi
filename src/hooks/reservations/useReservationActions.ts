@@ -16,16 +16,23 @@ export function useReservationActions(reservation: Reservation | null) {
     
     try {
       setIsProcessing(true);
+      console.log(`Cancelling reservation ${reservation.id} from details`);
       
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("reservations")
         .update({ 
           status: "cancelled",
           updated_at: new Date().toISOString()
         })
-        .eq("id", reservation.id);
+        .eq("id", reservation.id)
+        .select();  // Add .select() to return the updated data
       
-      if (error) throw error;
+      if (error) {
+        console.error("Cancel error:", error);
+        throw error;
+      }
+      
+      console.log("Cancellation response:", data);
       
       sonnerToast.success("Reservation cancelled successfully");
       

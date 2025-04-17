@@ -30,6 +30,8 @@ export function useReservationOperations(onReservationsChanged: () => Promise<vo
         throw error;
       }
       
+      console.log("Update response:", data);
+      
       toast({
         title: "Reservation updated",
         description: `Reservation status changed to ${newStatus}`,
@@ -69,6 +71,8 @@ export function useReservationOperations(onReservationsChanged: () => Promise<vo
         throw error;
       }
       
+      console.log("Check-in response:", data);
+      
       sonnerToast.success("Guest checked in successfully");
       
       // Refresh the reservations list
@@ -101,18 +105,21 @@ export function useReservationOperations(onReservationsChanged: () => Promise<vo
       console.log(`Cancelling reservation ${selectedReservation.id}`);
       
       // Directly cancel the reservation in the database
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("reservations")
         .update({ 
           status: "cancelled",
           updated_at: new Date().toISOString()
         })
-        .eq("id", selectedReservation.id);
+        .eq("id", selectedReservation.id)
+        .select();  // Add .select() to return the updated data
       
       if (error) {
         console.error("Cancel error:", error);
         throw error;
       }
+      
+      console.log("Cancellation response:", data);
       
       sonnerToast.success("Reservation cancelled successfully");
       
