@@ -65,10 +65,47 @@ export function useBeachDetails(beachId: string | undefined) {
       
       if (error) throw error;
       
-      // Debug
+      // Enhanced debugging
       console.log("Fetched zones:", data);
       
-      setZones(data || []);
+      if (!data || data.length === 0) {
+        // If we don't have zones but do have sets, let's create virtual zones based on set names
+        const uniqueZonePrefixes = [...new Set(sets.map(set => {
+          // Extract zone name prefix (everything before the first space or number)
+          const match = set.name.match(/^([A-Za-z]+)/);
+          return match ? match[0] : null;
+        }))].filter(Boolean);
+        
+        console.log("Generated virtual zones from sets:", uniqueZonePrefixes);
+        
+        if (uniqueZonePrefixes.length > 0) {
+          // Create virtual zones based on set prefixes
+          const virtualZones = uniqueZonePrefixes.map((prefix, index) => {
+            const zoneSets = sets.filter(set => set.name.startsWith(prefix as string));
+            const averagePrice = zoneSets.length > 0 
+              ? zoneSets.reduce((sum, set) => sum + Number(set.price || 0), 0) / zoneSets.length
+              : 0;
+              
+            return {
+              id: `virtual-${index}`,
+              name: prefix as string,
+              beach_id: beachId,
+              price: averagePrice,
+              rows: 0,
+              spots_per_row: 0,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            } as Zone;
+          });
+          
+          console.log("Setting virtual zones:", virtualZones);
+          setZones(virtualZones);
+        } else {
+          setZones([]);
+        }
+      } else {
+        setZones(data);
+      }
     } catch (error: any) {
       toast({
         title: "Error loading beach zones",
@@ -89,6 +126,8 @@ export function useBeachDetails(beachId: string | undefined) {
         .order("position");
       
       if (setsError) throw setsError;
+      
+      console.log("All sets fetched:", allSets?.length || 0);
       
       // Fetch reserved sets for this date
       const formattedDate = format(date, "yyyy-MM-dd");
@@ -120,7 +159,7 @@ export function useBeachDetails(beachId: string | undefined) {
       })) || [];
       
       // Debug
-      console.log("Fetched sets:", updatedSets);
+      console.log("Fetched sets:", updatedSets.length);
       
       setSets(updatedSets);
       setReservedSets(updatedSets.filter(set => set.status === "reserved"));
