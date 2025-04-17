@@ -7,34 +7,16 @@ import { Beach } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BeachLayout } from "@/components/beaches/BeachLayout";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, MapPin, CalendarIcon, X } from "lucide-react";
+import { Loader2, MapPin, CalendarIcon, Check } from "lucide-react";
 import { format } from "date-fns";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { GuestReservationForm } from "@/components/reservations/GuestReservationForm";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  RadioGroup,
-  RadioGroupItem,
-} from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function BeachDetail() {
   const { id } = useParams<{ id: string }>();
@@ -53,6 +35,7 @@ export default function BeachDetail() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isProcessing, setIsProcessing] = useState(false);
   const [showGuestForm, setShowGuestForm] = useState(false);
+  const [currentStep, setCurrentStep] = useState<"date" | "location" | "payment">("date");
   
   useEffect(() => {
     if (!id) return;
@@ -182,11 +165,12 @@ export default function BeachDetail() {
     setSelectedSets(prev => prev.filter(s => s.id !== setId));
   };
 
-  const handleZoneChange = (zoneId: string) => {
-    const zone = zones.find(z => z.id === zoneId) || null;
+  const handleZoneSelect = (zone: Zone) => {
     setSelectedZone(zone);
     // Clear selected sets when changing zone
     setSelectedSets([]);
+    // Move to next step
+    setCurrentStep("location");
   };
 
   const getSetsForZone = (zoneName: string) => {
@@ -352,6 +336,26 @@ export default function BeachDetail() {
     }
   };
 
+  const goToStep = (step: "date" | "location" | "payment") => {
+    if (step === "location" && !selectedDate) {
+      toast({
+        title: "Please select a date first",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (step === "payment" && selectedSets.length === 0) {
+      toast({
+        title: "Please select at least one set",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setCurrentStep(step);
+  };
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -382,187 +386,289 @@ export default function BeachDetail() {
   }
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">{beach.name}</h1>
-        {beach.location && (
-          <p className="text-muted-foreground flex items-center mt-1">
-            <MapPin className="h-4 w-4 mr-1" />
-            {beach.location}
-          </p>
-        )}
-        {beach.description && (
-          <p className="mt-3 text-gray-600">{beach.description}</p>
-        )}
-      </div>
+    <div className="container max-w-5xl mx-auto px-4">
+      <h1 className="text-3xl font-bold text-center mb-8">Reserve Your Beach Spot</h1>
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div>
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold mb-3">Select Date</h2>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant={"outline"}
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !selectedDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
+      <div className="bg-white rounded-lg border shadow-sm p-6 mb-8">
+        <div className="mb-6">
+          <h2 className="text-xl font-bold">Your Reservation</h2>
+          <p className="text-gray-600">Follow the steps below to complete your reservation</p>
+        </div>
+        
+        {/* Step Indicator */}
+        <div className="grid grid-cols-3 gap-2 mb-8">
+          <div 
+            className={cn(
+              "p-4 rounded-md text-center cursor-pointer transition-colors",
+              currentStep === "date" 
+                ? "bg-blue-100 text-blue-800" 
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            )}
+            onClick={() => goToStep("date")}
+          >
+            <span className="font-medium">1. Select Date</span>
+          </div>
+          <div 
+            className={cn(
+              "p-4 rounded-md text-center cursor-pointer transition-colors",
+              currentStep === "location" 
+                ? "bg-blue-100 text-blue-800" 
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            )}
+            onClick={() => goToStep("location")}
+          >
+            <span className="font-medium">2. Choose Location</span>
+          </div>
+          <div 
+            className={cn(
+              "p-4 rounded-md text-center cursor-pointer transition-colors",
+              currentStep === "payment" 
+                ? "bg-blue-100 text-blue-800" 
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            )}
+            onClick={() => goToStep("payment")}
+          >
+            <span className="font-medium">3. Complete Payment</span>
+          </div>
+        </div>
+        
+        {/* Step content */}
+        <Tabs value={currentStep} className="w-full">
+          <TabsContent value="date" className="m-0">
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold mb-4">Select Date for Your Reservation</h2>
+              <div className="max-w-sm mx-auto">
                 <Calendar
                   mode="single"
                   selected={selectedDate}
                   onSelect={(date) => date && setSelectedDate(date)}
                   disabled={(date) => date < new Date()}
-                  initialFocus
+                  className="rounded-md border shadow p-4 bg-white mx-auto"
                 />
-              </PopoverContent>
-            </Popover>
-          </div>
-          
-          {zones.length > 0 && (
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold mb-3">Select Zone</h2>
-              <Select onValueChange={handleZoneChange} value={selectedZone?.id}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a zone" />
-                </SelectTrigger>
-                <SelectContent>
-                  {zones.map((zone) => (
-                    <SelectItem key={zone.id} value={zone.id}>
-                      {zone.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              </div>
+              <div className="flex justify-center mt-6">
+                <Button 
+                  onClick={() => goToStep("location")}
+                  disabled={!selectedDate}
+                >
+                  Continue to Location Selection
+                </Button>
+              </div>
             </div>
-          )}
+          </TabsContent>
           
-          <div>
-            {selectedZone ? (
-              <div className="space-y-4">
-                <h2 className="text-xl font-semibold mb-3">Available Sets - {selectedZone.name}</h2>
-                
-                {getSetsByRow(getSetsForZone(selectedZone.name)).map(({ rowNum, sets: rowSets }) => (
-                  <div key={rowNum} className="border rounded-md p-4 bg-card">
-                    <h3 className="font-medium mb-2">Row {rowNum}</h3>
-                    <RadioGroup className="grid grid-cols-4 gap-2">
-                      {rowSets.map((set) => (
-                        <div 
-                          key={set.id} 
-                          className={cn(
-                            "relative p-2 rounded-md border",
-                            set.status === "reserved" && "bg-red-100 border-red-300",
-                            selectedSets.some(s => s.id === set.id) && "bg-blue-100 border-blue-300",
-                            set.status !== "reserved" && !selectedSets.some(s => s.id === set.id) && "bg-green-100 border-green-300"
-                          )}
-                        >
-                          <Label
-                            htmlFor={set.id}
-                            className={cn(
-                              "flex flex-col items-center space-y-1 cursor-pointer",
-                              set.status === "reserved" && "cursor-not-allowed text-red-500"
-                            )}
-                          >
-                            <RadioGroupItem 
-                              value={set.id} 
-                              id={set.id} 
-                              disabled={set.status === "reserved"}
-                              onClick={() => handleSelectSet(set)}
-                              checked={selectedSets.some(s => s.id === set.id)}
-                            />
-                            <span className="text-sm font-medium">{set.name}</span>
-                            <span className="text-xs">{Number(set.price).toFixed(2)}</span>
-                          </Label>
-                        </div>
-                      ))}
-                    </RadioGroup>
-                  </div>
+          <TabsContent value="location" className="m-0 space-y-6">
+            <div>
+              <h2 className="text-xl font-semibold mb-4">Choose Your Beach Location</h2>
+              
+              {/* Zone Selection Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                {zones.map(zone => (
+                  <Card 
+                    key={zone.id}
+                    className={cn(
+                      "cursor-pointer hover:border-blue-400 transition-all",
+                      selectedZone?.id === zone.id && "border-blue-500 ring-2 ring-blue-200"
+                    )}
+                    onClick={() => handleZoneSelect(zone)}
+                  >
+                    <CardContent className="pt-6 text-center">
+                      <h3 className="font-semibold text-lg">{zone.name}</h3>
+                      <p className="text-blue-600 text-xl font-bold my-2">${Number(zone.price).toFixed(2)}</p>
+                      <p className="text-gray-500 text-sm">
+                        {getSetsForZone(zone.name).filter(s => s.status !== "reserved").length} of {getSetsForZone(zone.name).length} spots available
+                      </p>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
-            ) : (
-              <div className="text-center p-6 border rounded-md bg-muted/50">
-                <p className="text-muted-foreground mb-2">Please select a zone first</p>
-                <p className="text-sm text-muted-foreground">
-                  Select a zone to view and reserve available beach sets
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-        
-        <div>
-          <div className="border rounded-lg p-6 bg-card shadow-sm">
-            <h2 className="text-xl font-semibold mb-4">Your Reservation</h2>
-            
-            <div className="mb-4">
-              <p className="font-medium">Selected Date:</p>
-              <p>{format(selectedDate, "EEEE, MMMM d, yyyy")}</p>
-            </div>
-            
-            <div className="mb-6">
-              <p className="font-medium mb-2">Selected Sets ({selectedSets.length}):</p>
-              {selectedSets.length === 0 ? (
-                <p className="text-muted-foreground text-sm">
-                  No sets selected. Click on an available set in the beach layout.
-                </p>
-              ) : (
-                <div className="space-y-2">
-                  {selectedSets.map(set => (
-                    <div key={set.id} className="flex justify-between items-center p-2 bg-muted rounded">
-                      <span>{set.name}</span>
-                      <div className="flex items-center gap-2">
-                        <span>{Number(set.price).toFixed(2)}</span>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => handleRemoveSet(set.id)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+              
+              {/* Beach Layout */}
+              {selectedZone && (
+                <div className="mt-8">
+                  <h3 className="font-medium mb-2">Select a specific location:</h3>
                   
-                  <div className="flex justify-between font-medium pt-2">
-                    <span>Total:</span>
-                    <span>
-                      {selectedSets.reduce((sum, set) => sum + Number(set.price || 0), 0).toFixed(2)}
-                    </span>
+                  <div className="border rounded-lg p-4 bg-blue-50">
+                    <div className="w-full p-3 mb-8 bg-blue-400 text-white text-center font-bold rounded">
+                      Ocean
+                    </div>
+                    
+                    {getSetsByRow(getSetsForZone(selectedZone.name)).map(({ rowNum, sets: rowSets }) => (
+                      <div key={rowNum} className="mb-4 flex items-center">
+                        <div className="w-16 text-right pr-4 font-medium">
+                          Row {rowNum}
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {rowSets.map(set => (
+                            <button
+                              key={set.id}
+                              disabled={set.status === "reserved"}
+                              onClick={() => handleSelectSet(set)}
+                              className={cn(
+                                "w-12 h-12 rounded-full flex items-center justify-center text-sm font-medium border-2 transition-all",
+                                set.status === "reserved" && "bg-gray-200 border-gray-300 cursor-not-allowed",
+                                selectedSets.some(s => s.id === set.id) && "bg-blue-500 text-white border-blue-600",
+                                set.status !== "reserved" && !selectedSets.some(s => s.id === set.id) && "bg-green-100 border-green-300 hover:bg-green-200"
+                              )}
+                            >
+                              {set.position}
+                              {selectedSets.some(s => s.id === set.id) && (
+                                <Check className="h-3 w-3 absolute top-0 right-0 text-white bg-blue-600 rounded-full p-0.5" />
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                    
+                    <div className="w-full p-3 mt-8 bg-yellow-100 text-yellow-800 text-center font-medium rounded">
+                      Beach Entrance
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-4 mt-4 justify-end">
+                    <div className="flex items-center gap-1 text-xs">
+                      <div className="h-3 w-3 rounded-full bg-green-500"></div>
+                      <span>Available</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs">
+                      <div className="h-3 w-3 rounded-full bg-blue-500"></div>
+                      <span>Selected</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs">
+                      <div className="h-3 w-3 rounded-full bg-gray-300"></div>
+                      <span>Reserved</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-end mt-6 space-x-4">
+                    <Button variant="outline" onClick={() => goToStep("date")}>
+                      Back
+                    </Button>
+                    <Button 
+                      onClick={() => goToStep("payment")}
+                      disabled={selectedSets.length === 0}
+                    >
+                      Continue to Payment
+                    </Button>
                   </div>
                 </div>
               )}
             </div>
-            
-            <Button 
-              className="w-full"
-              disabled={selectedSets.length === 0 || isProcessing}
-              onClick={handleReservation}
-            >
-              {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {user ? "Complete Reservation" : "Continue as Guest"}
-            </Button>
-          </div>
-        </div>
+          </TabsContent>
+          
+          <TabsContent value="payment" className="m-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="border rounded-lg p-6 bg-gray-50">
+                <h3 className="font-semibold text-lg mb-4">Reservation Summary</h3>
+                
+                <div className="space-y-4">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Date:</span>
+                    <span className="font-medium">{format(selectedDate, "EEEE, MMMM d, yyyy")}</span>
+                  </div>
+                  
+                  <div>
+                    <div className="flex justify-between mb-2">
+                      <span className="text-gray-600">Beach:</span>
+                      <span className="font-medium">{beach.name}</span>
+                    </div>
+                    {beach.location && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Location:</span>
+                        <span className="font-medium">{beach.location}</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <div className="flex justify-between mb-2">
+                      <span className="text-gray-600">Zone:</span>
+                      <span className="font-medium">{selectedZone?.name || "Not selected"}</span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <p className="text-gray-600 mb-2">Selected Sets:</p>
+                    <div className="space-y-2">
+                      {selectedSets.map(set => (
+                        <div key={set.id} className="flex justify-between items-center p-2 bg-white rounded border">
+                          <span>{set.name}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">${Number(set.price).toFixed(2)}</span>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleRemoveSet(set.id)}
+                              className="h-6 w-6 p-0"
+                            >
+                              ×
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="pt-4 border-t">
+                    <div className="flex justify-between font-bold text-lg">
+                      <span>Total:</span>
+                      <span>${selectedSets.reduce((sum, set) => sum + Number(set.price || 0), 0).toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                {user ? (
+                  <div className="space-y-6">
+                    <h3 className="font-semibold text-lg">Payment Information</h3>
+                    <p className="text-gray-600">
+                      Your reservation will be processed immediately. You will receive a confirmation email shortly.
+                    </p>
+                    
+                    <div className="flex items-center space-x-2 my-4">
+                      <Checkbox id="terms" />
+                      <label
+                        htmlFor="terms"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        I agree to the terms and conditions
+                      </label>
+                    </div>
+                    
+                    <div className="flex justify-end space-x-4">
+                      <Button variant="outline" onClick={() => goToStep("location")}>
+                        Back
+                      </Button>
+                      <Button 
+                        onClick={handleReservation}
+                        disabled={isProcessing || selectedSets.length === 0}
+                      >
+                        {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Complete Reservation
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    <h3 className="font-semibold text-lg">Continue as Guest</h3>
+                    <p className="text-gray-600 mb-4">
+                      Please provide your contact information to continue with the reservation.
+                    </p>
+                    
+                    <GuestReservationForm 
+                      onSubmit={handleGuestReservation}
+                      onCancel={() => goToStep("location")}
+                      isSubmitting={isProcessing}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
-      
-      {showGuestForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Guest Reservation</h2>
-            <GuestReservationForm 
-              onSubmit={handleGuestReservation}
-              onCancel={() => setShowGuestForm(false)}
-              isSubmitting={isProcessing}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }
