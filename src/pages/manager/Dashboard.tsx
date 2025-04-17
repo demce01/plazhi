@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +10,7 @@ import { Loader2, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { BeachForm } from "@/components/beaches/BeachForm";
 import { BeachManagement } from "@/components/beaches/BeachManagement";
+import { ReservationManagement } from "@/components/reservations/ReservationManagement";
 
 export default function ManagerDashboard() {
   const { userSession } = useAuth();
@@ -19,6 +20,8 @@ export default function ManagerDashboard() {
   const [loading, setLoading] = useState(true);
   const [beaches, setBeaches] = useState<Beach[]>([]);
   const [showBeachForm, setShowBeachForm] = useState(false);
+  const [activeTab, setActiveTab] = useState("beaches");
+  const tabsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!managerId && role !== 'manager' && role !== 'admin') {
@@ -75,6 +78,14 @@ export default function ManagerDashboard() {
     });
   };
 
+  const activateReservationsTab = () => {
+    setActiveTab("reservations");
+    // Scroll to tabs if needed
+    if (tabsRef.current) {
+      tabsRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -106,26 +117,29 @@ export default function ManagerDashboard() {
           </Button>
         </div>
       ) : (
-        <Tabs defaultValue="beaches" className="w-full">
-          <TabsList className="w-full grid grid-cols-2">
-            <TabsTrigger value="beaches">My Beaches</TabsTrigger>
-            <TabsTrigger value="reservations">Reservations</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="beaches" className="mt-6">
-            <div className="grid gap-4">
-              {beaches.map(beach => (
-                <BeachManagement key={beach.id} beach={beach} onUpdate={fetchManagerBeaches} />
-              ))}
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="reservations" className="mt-6">
-            <h3 className="text-xl font-medium mb-4">Recent Reservations</h3>
-            {/* We'll implement the reservations view in a separate component */}
-            <p>Reservation management coming soon</p>
-          </TabsContent>
-        </Tabs>
+        <div ref={tabsRef}>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="w-full grid grid-cols-2">
+              <TabsTrigger value="beaches">My Beaches</TabsTrigger>
+              <TabsTrigger value="reservations">Reservations</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="beaches" className="mt-6">
+              <div className="grid gap-4">
+                {beaches.map(beach => (
+                  <BeachManagement key={beach.id} beach={beach} onUpdate={fetchManagerBeaches} />
+                ))}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="reservations" className="mt-6">
+              <ReservationManagement 
+                beaches={beaches} 
+                activateReservationsTab={activateReservationsTab}
+              />
+            </TabsContent>
+          </Tabs>
+        </div>
       )}
     </div>
   );

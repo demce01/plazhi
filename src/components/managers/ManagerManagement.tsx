@@ -21,6 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { Loader2, Plus, UserPlus } from "lucide-react";
 
 interface ManagerManagementProps {
@@ -130,6 +131,7 @@ export function ManagerManagement({ managers, beaches, onUpdate }: ManagerManage
                 <TableRow>
                   <TableHead>Manager ID</TableHead>
                   <TableHead>Assigned Beach</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -162,6 +164,17 @@ export function ManagerManagement({ managers, beaches, onUpdate }: ManagerManage
                             ))}
                           </SelectContent>
                         </Select>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {manager.beach_id ? (
+                        <Badge variant="outline" className="bg-green-100 text-green-800">
+                          Active
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="bg-yellow-100 text-yellow-800">
+                          Unassigned
+                        </Badge>
                       )}
                     </TableCell>
                     <TableCell>
