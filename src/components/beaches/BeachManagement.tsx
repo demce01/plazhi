@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Beach, Set, Zone } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -27,6 +26,16 @@ import { BeachSetForm } from "./BeachSetForm";
 import { ZoneForm } from "./ZoneForm";
 import { ZoneManagement } from "./ZoneManagement";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface BeachManagementProps {
   beach: Beach;
@@ -41,6 +50,7 @@ export function BeachManagement({ beach, onUpdate }: BeachManagementProps) {
   const [zones, setZones] = useState<Zone[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showZoneDialog, setShowZoneDialog] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const handleBeachUpdate = (updatedBeach: Beach) => {
     setIsEditing(false);
@@ -52,10 +62,23 @@ export function BeachManagement({ beach, onUpdate }: BeachManagementProps) {
   };
 
   const handleDeleteBeach = async () => {
-    if (!confirm(`Are you sure you want to delete ${beach.name}?`)) return;
-
     try {
       setIsLoading(true);
+      
+      const { error: zonesError } = await supabase
+        .from("zones")
+        .delete()
+        .eq("beach_id", beach.id);
+      
+      if (zonesError) throw zonesError;
+      
+      const { error: setsError } = await supabase
+        .from("sets")
+        .delete()
+        .eq("beach_id", beach.id);
+      
+      if (setsError) throw setsError;
+      
       const { error } = await supabase
         .from("beaches")
         .delete()
@@ -74,8 +97,10 @@ export function BeachManagement({ beach, onUpdate }: BeachManagementProps) {
         description: `Failed to delete beach: ${error.message}`,
         variant: "destructive",
       });
+      console.error("Delete beach error:", error);
     } finally {
       setIsLoading(false);
+      setShowDeleteConfirm(false);
     }
   };
 
@@ -143,7 +168,6 @@ export function BeachManagement({ beach, onUpdate }: BeachManagementProps) {
       title: "Zone created",
       description: `${newZone.name} zone has been created with ${newZone.rows * newZone.spots_per_row} sets.`,
     });
-    // Refetch sets to reflect the automatically created sets from the trigger
     fetchSets();
   };
 
@@ -184,7 +208,12 @@ export function BeachManagement({ beach, onUpdate }: BeachManagementProps) {
             <Button variant="outline" size="icon" onClick={() => setIsEditing(!isEditing)}>
               <Edit className="h-4 w-4" />
             </Button>
-            <Button variant="outline" size="icon" onClick={handleDeleteBeach} disabled={isLoading}>
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={() => setShowDeleteConfirm(true)} 
+              disabled={isLoading}
+            >
               <Trash className="h-4 w-4 text-destructive" />
             </Button>
             <Button variant="outline" size="icon" onClick={toggleExpand}>
@@ -197,6 +226,28 @@ export function BeachManagement({ beach, onUpdate }: BeachManagementProps) {
           </div>
         </div>
       </CardHeader>
+
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action will permanently delete the beach "{beach.name}" and all associated sets and zones.
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteBeach}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={isLoading}
+            >
+              {isLoading ? "Deleting..." : "Delete Beach"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {isEditing && (
         <CardContent>
