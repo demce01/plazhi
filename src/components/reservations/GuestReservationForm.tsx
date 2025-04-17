@@ -13,7 +13,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Loader2 } from "lucide-react";
+import { Loader2, User, Phone, Mail } from "lucide-react";
 
 // Form validation schema
 const guestSchema = z.object({
@@ -57,7 +57,10 @@ export function GuestReservationForm({
             <FormItem>
               <FormLabel>Name</FormLabel>
               <FormControl>
-                <Input placeholder="John Doe" {...field} />
+                <div className="relative">
+                  <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input className="pl-10" placeholder="John Doe" {...field} />
+                </div>
               </FormControl>
               <FormDescription>
                 Enter your full name
@@ -74,7 +77,10 @@ export function GuestReservationForm({
             <FormItem>
               <FormLabel>Phone</FormLabel>
               <FormControl>
-                <Input placeholder="+1234567890" {...field} />
+                <div className="relative">
+                  <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input className="pl-10" placeholder="+1234567890" {...field} />
+                </div>
               </FormControl>
               <FormDescription>
                 Enter your phone number
@@ -91,7 +97,10 @@ export function GuestReservationForm({
             <FormItem>
               <FormLabel>Email (Optional)</FormLabel>
               <FormControl>
-                <Input placeholder="email@example.com" {...field} />
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input className="pl-10" placeholder="email@example.com" {...field} />
+                </div>
               </FormControl>
               <FormDescription>
                 Provide your email for reservation updates

@@ -295,6 +295,7 @@ export default function BeachDetail() {
           beach_id: beach?.id,
           guest_name: guestData.name,
           guest_phone: guestData.phone,
+          guest_email: guestData.email,
           reservation_date: format(selectedDate, "yyyy-MM-dd"),
           payment_amount: totalAmount,
         })
@@ -428,7 +429,7 @@ export default function BeachDetail() {
             )}
             onClick={() => goToStep("payment")}
           >
-            <span className="font-medium">3. Complete Payment</span>
+            <span className="font-medium">3. Complete Reservation</span>
           </div>
         </div>
         
