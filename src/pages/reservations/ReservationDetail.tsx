@@ -70,13 +70,15 @@ export default function ReservationDetail() {
     if (!reservation || !id) return;
     
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("reservations")
         .update({ checked_in: true })
-        .eq("id", id);
+        .eq("id", id)
+        .select();
       
       if (error) throw error;
       
+      console.log("Check-in successful", data);
       setReservation({ ...reservation, checked_in: true });
       
       toast({
@@ -84,6 +86,7 @@ export default function ReservationDetail() {
         description: "Guest has been successfully checked in",
       });
     } catch (error: any) {
+      console.error("Failed to check in guest:", error);
       toast({
         title: "Error checking in guest",
         description: error.message,

@@ -182,17 +182,18 @@ export function ReservationManagement({
       console.log(`Updating reservation ${reservationId} status to ${newStatus}`);
       
       // Update the reservation status in the database
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("reservations")
         .update({ status: newStatus })
-        .eq("id", reservationId);
+        .eq("id", reservationId)
+        .select();
       
       if (error) {
         console.error("Update error:", error);
         throw error;
       }
       
-      console.log("Database update successful");
+      console.log("Database update successful", data);
       
       // Update local state to reflect the change
       setReservations(prev => 
@@ -213,8 +214,6 @@ export function ReservationManagement({
         description: `Reservation status changed to ${newStatus}`,
       });
       
-      // Refresh reservations to ensure sync with database
-      fetchReservations();
     } catch (error: any) {
       console.error("Failed to update reservation:", error);
       toast({
@@ -230,17 +229,18 @@ export function ReservationManagement({
       console.log(`Checking in reservation ${reservationId}`);
       
       // Update the reservation check-in status in the database
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("reservations")
         .update({ checked_in: true })
-        .eq("id", reservationId);
+        .eq("id", reservationId)
+        .select();
       
       if (error) {
         console.error("Check-in error:", error);
         throw error;
       }
       
-      console.log("Check-in successful");
+      console.log("Check-in successful", data);
       
       // Update local state to reflect the change
       setReservations(prev => 
@@ -261,8 +261,6 @@ export function ReservationManagement({
         description: "Guest has been successfully checked in",
       });
       
-      // Refresh reservations to ensure sync with database
-      fetchReservations();
     } catch (error: any) {
       console.error("Failed to check in guest:", error);
       toast({
