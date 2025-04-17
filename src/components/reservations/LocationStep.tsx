@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
 import { Set, Zone } from "@/types";
+import { BeachLayout } from "@/components/beaches/BeachLayout";
 
 interface LocationStepProps {
   isActive: boolean;

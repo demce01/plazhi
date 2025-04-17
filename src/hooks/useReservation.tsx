@@ -43,8 +43,6 @@ export function useReservation(
     setSelectedZone(zone);
     // Clear selected sets when changing zone
     setSelectedSets([]);
-    // Move to next step
-    setCurrentStep("location");
   };
 
   const getSetsForZone = (zoneName: string, sets: Set[]) => {

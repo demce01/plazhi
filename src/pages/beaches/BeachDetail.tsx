@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useBeachDetails } from "@/hooks/useBeachDetails";
 import { useReservation } from "@/hooks/useReservation";
 import { ReservationSteps } from "@/components/reservations/ReservationSteps";
@@ -13,7 +12,7 @@ import { PaymentStep } from "@/components/reservations/PaymentStep";
 
 export default function BeachDetail() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate(); // Added useNavigate hook
+  const navigate = useNavigate();
   const { userSession } = useAuth();
   
   // Custom hooks for beach data and reservation management
@@ -71,9 +70,9 @@ export default function BeachDetail() {
       </div>
     );
   }
-
-  // Debug: Check zones in the render
-  console.log("Rendering with zones:", zones, "and selectedZone:", selectedZone);
+  
+  // Log information for debugging
+  console.log("Rendering beach detail with zones:", zones.length);
 
   return (
     <div className="container max-w-5xl mx-auto px-4">
@@ -92,52 +91,46 @@ export default function BeachDetail() {
         />
         
         {/* Step content */}
-        <Tabs value={currentStep} className="w-full">
-          <TabsContent value="date" className="m-0">
-            <DateStep 
-              selectedDate={selectedDate} 
-              onDateChange={(date) => date && setSelectedDate(date)}
-              onContinue={() => goToStep("location")}
-              isActive={currentStep === "date"}
-            />
-          </TabsContent>
+        <div className="mt-8">
+          <DateStep 
+            selectedDate={selectedDate} 
+            onDateChange={(date) => date && setSelectedDate(date)}
+            onContinue={() => goToStep("location")}
+            isActive={currentStep === "date"}
+          />
           
-          <TabsContent value="location" className="m-0 space-y-6">
-            <LocationStep 
-              isActive={currentStep === "location"}
-              zones={zones}
-              selectedZone={selectedZone}
-              onZoneSelect={handleZoneSelect}
-              getSetsForZone={(zoneName) => getSetsForZone(zoneName, sets)}
-              getSetsByRow={getSetsByRow}
-              selectedSets={selectedSets}
-              onSelectSet={handleSelectSet}
-              onContinue={() => goToStep("payment")}
-              onBack={() => goToStep("date")}
-            />
-          </TabsContent>
+          <LocationStep 
+            isActive={currentStep === "location"}
+            zones={zones}
+            selectedZone={selectedZone}
+            onZoneSelect={handleZoneSelect}
+            getSetsForZone={(zoneName) => getSetsForZone(zoneName, sets)}
+            getSetsByRow={getSetsByRow}
+            selectedSets={selectedSets}
+            onSelectSet={handleSelectSet}
+            onContinue={() => goToStep("payment")}
+            onBack={() => goToStep("date")}
+          />
           
-          <TabsContent value="payment" className="m-0">
-            <PaymentStep 
-              isActive={currentStep === "payment"}
-              beach={beach}
-              selectedDate={selectedDate}
-              selectedZone={selectedZone}
-              selectedSets={selectedSets}
-              isLoggedIn={!!userSession.user}
-              isProcessing={isProcessing}
-              showGuestForm={showGuestForm}
-              onRemoveSet={handleRemoveSet}
-              onBack={() => goToStep("location")}
-              onSubmit={handleReservation}
-              onGuestSubmit={handleGuestReservation}
-              onCancelGuest={() => {
-                setShowGuestForm(false);
-                goToStep("location");
-              }}
-            />
-          </TabsContent>
-        </Tabs>
+          <PaymentStep 
+            isActive={currentStep === "payment"}
+            beach={beach}
+            selectedDate={selectedDate}
+            selectedZone={selectedZone}
+            selectedSets={selectedSets}
+            isLoggedIn={!!userSession.user}
+            isProcessing={isProcessing}
+            showGuestForm={showGuestForm}
+            onRemoveSet={handleRemoveSet}
+            onBack={() => goToStep("location")}
+            onSubmit={handleReservation}
+            onGuestSubmit={handleGuestReservation}
+            onCancelGuest={() => {
+              setShowGuestForm(false);
+              goToStep("location");
+            }}
+          />
+        </div>
       </div>
     </div>
   );
