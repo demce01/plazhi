@@ -19,21 +19,27 @@ export function useManagerDetails(managers: Manager[]) {
   useEffect(() => {
     const fetchUserDetails = async () => {
       if (!managers.length) {
+        console.log("No managers provided to useManagerDetails");
         setEnrichedManagers([]);
         return;
       }
 
       setLoading(true);
       try {
-        // Create a copy of the managers array and enrich it with user details
-        const managersWithDetails = [...managers];
+        console.log("Fetching details for managers:", managers);
         
-        // Fetch user details for each manager
+        // Create a copy of the managers array and enrich it with user details
+        const managersWithDetails: ManagerWithUserDetails[] = [...managers];
+        
+        // Fetch user details for each manager directly from auth.users
         for (let i = 0; i < managersWithDetails.length; i++) {
           const manager = managersWithDetails[i];
           
           if (manager.user_id) {
-            const { data, error } = await supabase.auth.admin.getUserById(
+            console.log("Fetching details for manager with user_id:", manager.user_id);
+            
+            // Get user data from Supabase Auth
+            const { data: userData, error } = await supabase.auth.admin.getUserById(
               manager.user_id
             );
             
@@ -42,19 +48,24 @@ export function useManagerDetails(managers: Manager[]) {
               continue;
             }
             
-            if (data && data.user) {
-              // Add user details to the manager object
-              const userMetadata = data.user.user_metadata || {};
+            if (userData && userData.user) {
+              console.log("Found user data:", userData.user.email);
               
-              (managersWithDetails[i] as ManagerWithUserDetails).userDetails = {
-                email: data.user.email,
-                fullName: userMetadata.full_name || userMetadata.name || 'N/A',
+              // Add user details to the manager object
+              const userMetadata = userData.user.user_metadata || {};
+              
+              managersWithDetails[i].userDetails = {
+                email: userData.user.email,
+                fullName: userMetadata.full_name || userMetadata.name || 'Manager',
               };
+            } else {
+              console.log("No user data found for manager:", manager.user_id);
             }
           }
         }
         
-        setEnrichedManagers(managersWithDetails as ManagerWithUserDetails[]);
+        console.log("Enriched managers with details:", managersWithDetails);
+        setEnrichedManagers(managersWithDetails);
       } catch (error: any) {
         console.error("Error fetching user details:", error);
         toast({
@@ -62,6 +73,9 @@ export function useManagerDetails(managers: Manager[]) {
           description: "There was a problem fetching user information",
           variant: "destructive",
         });
+        
+        // Still set the managers even if we couldn't enrich them
+        setEnrichedManagers([...managers]);
       } finally {
         setLoading(false);
       }
