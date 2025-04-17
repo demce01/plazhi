@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
@@ -6,11 +5,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Beach } from "@/types";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Plus, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { BeachForm } from "@/components/beaches/BeachForm";
 import { BeachManagement } from "@/components/beaches/BeachManagement";
 import { ReservationManagement } from "@/components/reservations/ReservationManagement";
+import { Input } from "@/components/ui/input";
 
 export default function ManagerDashboard() {
   const { userSession } = useAuth();
@@ -19,8 +19,10 @@ export default function ManagerDashboard() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [beaches, setBeaches] = useState<Beach[]>([]);
+  const [filteredBeaches, setFilteredBeaches] = useState<Beach[]>([]);
   const [showBeachForm, setShowBeachForm] = useState(false);
   const [activeTab, setActiveTab] = useState("beaches");
+  const [searchQuery, setSearchQuery] = useState("");
   const tabsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -31,6 +33,15 @@ export default function ManagerDashboard() {
 
     fetchManagerBeaches();
   }, [managerId, role, navigate]);
+
+  useEffect(() => {
+    // Filter beaches based on search query
+    const filtered = beaches.filter(beach => 
+      beach.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (beach.location && beach.location.toLowerCase().includes(searchQuery.toLowerCase()))
+    );
+    setFilteredBeaches(filtered);
+  }, [searchQuery, beaches]);
 
   const fetchManagerBeaches = async () => {
     try {
@@ -125,8 +136,19 @@ export default function ManagerDashboard() {
             </TabsList>
             
             <TabsContent value="beaches" className="mt-6">
+              <div className="mb-4 flex items-center gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search beaches by name or location..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-8"
+                  />
+                </div>
+              </div>
               <div className="grid gap-4">
-                {beaches.map(beach => (
+                {filteredBeaches.map(beach => (
                   <BeachManagement key={beach.id} beach={beach} onUpdate={fetchManagerBeaches} />
                 ))}
               </div>
