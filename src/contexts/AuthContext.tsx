@@ -99,7 +99,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
       if (managerError) throw managerError;
       
-      // Get user metadata for admin role check
+      // Get user metadata for role check
       const { data: userData, error: userError } = await supabase.auth.getUser();
       if (userError) throw userError;
       
@@ -108,13 +108,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       // Check for admin role via app_metadata
       const appMetadata = userData?.user?.app_metadata;
-      const isAdmin = appMetadata && appMetadata.role === 'admin';
+      const userMetadata = userData?.user?.user_metadata;
       
-      if (isAdmin) {
+      if (appMetadata && appMetadata.role === 'admin') {
         role = 'admin';
+      } else if (userMetadata && userMetadata.role === 'manager') {
+        // Check user_metadata for manager role (set during signup)
+        role = 'manager';
       } else if (managerData) {
+        // Fallback to checking the managers table
         role = 'manager';
       }
+      
+      console.log("User role determined:", role, "User metadata:", userMetadata);
       
       setUserSession({
         user: {
@@ -168,7 +174,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         password,
         options: {
           data: {
-            phone
+            phone,
+            role: 'client' // Set default role for regular signups
           }
         }
       });

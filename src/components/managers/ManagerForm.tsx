@@ -51,6 +51,11 @@ export function ManagerForm({ beaches, onSuccess }: ManagerFormProps) {
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: values.email,
         password: values.password,
+        options: {
+          data: {
+            role: 'manager' // Set user metadata role to 'manager'
+          }
+        }
       });
       
       if (authError) throw authError;
