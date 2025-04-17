@@ -16,6 +16,7 @@ import BeachDetail from "./pages/beaches/BeachDetail";
 import ManagerDashboard from "./pages/manager/Dashboard";
 import AdminDashboard from "./pages/admin/Dashboard";
 import ReservationDetail from "./pages/reservations/ReservationDetail";
+import MyReservations from "./pages/reservations/MyReservations";
 
 // Layouts
 import { MainLayout } from "./components/layout/MainLayout";
@@ -37,6 +38,7 @@ const App = () => (
               <Route path="/beaches/:id" element={<BeachDetail />} />
               <Route path="/auth/login" element={<Login />} />
               <Route path="/auth/register" element={<Register />} />
+              <Route path="/reservations" element={<MyReservations />} />
               <Route path="/reservations/:id" element={<ReservationDetail />} />
               <Route path="/manager" element={
                 <ProtectedRoute allowedRoles={["manager", "admin"]}>
