@@ -1,27 +1,63 @@
-
 import { useNavigate } from "react-router-dom";
 import { Loader2, Plus, CalendarRange, Clock } from "lucide-react";
 import { useMyReservations } from "@/hooks/useMyReservations";
 import { useAuth } from "@/contexts/auth";
 import { Button } from "@/components/ui/button";
 import { ReservationCard } from "@/components/reservations/ReservationCard";
+import { MyReservationsFilterBar } from "@/components/reservations/MyReservationsFilterBar";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import { useState, useMemo } from "react";
 
 export default function MyReservations() {
   const { loading, reservations } = useMyReservations();
   const { userSession } = useAuth();
   const navigate = useNavigate();
 
-  const upcomingReservations = reservations.filter(
+  // Filter states
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  // Apply filters
+  const filteredReservations = useMemo(() => {
+    return reservations.filter((res) => {
+      // Search filter
+      if (searchQuery && !res.beach_name?.toLowerCase().includes(searchQuery.toLowerCase())) {
+        return false;
+      }
+
+      // Date filter
+      if (dateFilter) {
+        const resDate = new Date(res.reservation_date);
+        const filterDate = new Date(dateFilter);
+        if (
+          resDate.getFullYear() !== filterDate.getFullYear() ||
+          resDate.getMonth() !== filterDate.getMonth() ||
+          resDate.getDate() !== filterDate.getDate()
+        ) {
+          return false;
+        }
+      }
+
+      // Status filter
+      if (statusFilter !== "all" && res.status !== statusFilter) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [reservations, searchQuery, dateFilter, statusFilter]);
+
+  const upcomingReservations = filteredReservations.filter(
     res => new Date(res.reservation_date) >= new Date() && res.status !== 'cancelled'
   );
   
-  const pastReservations = reservations.filter(
+  const pastReservations = filteredReservations.filter(
     res => new Date(res.reservation_date) < new Date() || res.status === 'cancelled'
   );
 
@@ -63,46 +99,57 @@ export default function MyReservations() {
           </Button>
         </div>
       ) : (
-        <Tabs defaultValue="upcoming" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="upcoming" className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              Upcoming ({upcomingReservations.length})
-            </TabsTrigger>
-            <TabsTrigger value="past" className="flex items-center gap-2">
-              <CalendarRange className="h-4 w-4" />
-              Past ({pastReservations.length})
-            </TabsTrigger>
-          </TabsList>
+        <>
+          <MyReservationsFilterBar
+            searchQuery={searchQuery}
+            dateFilter={dateFilter}
+            statusFilter={statusFilter}
+            setSearchQuery={setSearchQuery}
+            setDateFilter={setDateFilter}
+            setStatusFilter={setStatusFilter}
+          />
 
-          <TabsContent value="upcoming" className="space-y-6">
-            {upcomingReservations.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No upcoming reservations
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {upcomingReservations.map((reservation) => (
-                  <ReservationCard key={reservation.id} reservation={reservation} />
-                ))}
-              </div>
-            )}
-          </TabsContent>
+          <Tabs defaultValue="upcoming" className="space-y-6">
+            <TabsList>
+              <TabsTrigger value="upcoming" className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Upcoming ({upcomingReservations.length})
+              </TabsTrigger>
+              <TabsTrigger value="past" className="flex items-center gap-2">
+                <CalendarRange className="h-4 w-4" />
+                Past ({pastReservations.length})
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="past" className="space-y-6">
-            {pastReservations.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No past reservations
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {pastReservations.map((reservation) => (
-                  <ReservationCard key={reservation.id} reservation={reservation} />
-                ))}
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
+            <TabsContent value="upcoming" className="space-y-6">
+              {upcomingReservations.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No upcoming reservations
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {upcomingReservations.map((reservation) => (
+                    <ReservationCard key={reservation.id} reservation={reservation} />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="past" className="space-y-6">
+              {pastReservations.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No past reservations
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {pastReservations.map((reservation) => (
+                    <ReservationCard key={reservation.id} reservation={reservation} />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </>
       )}
     </div>
   );
