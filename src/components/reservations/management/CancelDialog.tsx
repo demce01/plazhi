@@ -18,11 +18,11 @@ interface CancelDialogProps {
   onConfirm: () => void;
 }
 
-export function CancelDialog({
-  isOpen,
+export function CancelDialog({ 
+  isOpen, 
   isProcessing,
   onOpenChange,
-  onConfirm
+  onConfirm 
 }: CancelDialogProps) {
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
@@ -34,13 +34,11 @@ export function CancelDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isProcessing}>Keep Reservation</AlertDialogCancel>
+          <AlertDialogCancel disabled={isProcessing}>Cancel</AlertDialogCancel>
           <AlertDialogAction 
-            onClick={(e) => {
-              e.preventDefault();
-              onConfirm();
-            }}
+            onClick={onConfirm}
             disabled={isProcessing}
+            className="bg-red-600 hover:bg-red-700"
           >
             {isProcessing ? (
               <>
@@ -48,7 +46,7 @@ export function CancelDialog({
                 Cancelling...
               </>
             ) : (
-              "Yes, Cancel Reservation"
+              "Yes, cancel reservation"
             )}
           </AlertDialogAction>
         </AlertDialogFooter>
