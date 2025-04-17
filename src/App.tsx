@@ -12,9 +12,13 @@ import NotFound from "./pages/NotFound";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import BeachesList from "./pages/beaches/BeachesList";
+import BeachDetail from "./pages/beaches/BeachDetail";
+import ManagerDashboard from "./pages/manager/Dashboard";
+import ReservationDetail from "./pages/reservations/ReservationDetail";
 
 // Layouts
 import { MainLayout } from "./components/layout/MainLayout";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -29,8 +33,15 @@ const App = () => (
             <Route element={<MainLayout />}>
               <Route path="/" element={<Index />} />
               <Route path="/beaches" element={<BeachesList />} />
+              <Route path="/beaches/:id" element={<BeachDetail />} />
               <Route path="/auth/login" element={<Login />} />
               <Route path="/auth/register" element={<Register />} />
+              <Route path="/reservations/:id" element={<ReservationDetail />} />
+              <Route path="/manager" element={
+                <ProtectedRoute allowedRoles={["manager", "admin"]}>
+                  <ManagerDashboard />
+                </ProtectedRoute>
+              } />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

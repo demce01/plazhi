@@ -20,3 +20,23 @@ export interface UserSession {
   managerId?: string | null;
   loading: boolean;
 }
+
+export interface Zone {
+  id: string;
+  name: string;
+  rows: number;
+  spotsPerRow: number;
+}
+
+export interface BeachLayout {
+  zones: Zone[];
+  sets: Set[];
+}
+
+export interface GuestReservation {
+  name: string;
+  phone: string;
+  email?: string;
+  date: Date;
+  selectedSets: Set[];
+}
