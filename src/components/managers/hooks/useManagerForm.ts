@@ -26,30 +26,37 @@ export function useManagerForm(onSuccess: () => void) {
       
       console.log("Creating new manager with values:", values);
       
-      // Get current user to verify admin status
-      const { data: authData } = await supabase.auth.getUser();
+      // First create the auth user
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email: values.email,
+        password: values.password,
+        email_confirm: true,
+        user_metadata: {
+          fullName: values.fullName,
+          role: 'manager'
+        }
+      });
+      
+      if (authError) throw authError;
       
       if (!authData.user) {
-        throw new Error("You must be logged in to create managers");
-      }
-      
-      // Verify admin role from JWT claims
-      const adminRole = authData.user.app_metadata?.role === 'admin';
-      
-      if (!adminRole) {
-        throw new Error("Only admin users can create managers");
+        throw new Error("Failed to create user account");
       }
 
-      // Create a new manager record
+      console.log("Created auth user:", authData.user);
+
+      // Create a new manager record linked to the auth user
       const { data: managerData, error: managerError } = await supabase
         .from("managers")
         .insert({
-          user_id: authData.user.id, // For now, link to the admin user
+          user_id: authData.user.id,
           beach_id: values.beach_id === "none" ? null : values.beach_id,
         })
         .select();
       
       if (managerError) {
+        // If manager creation fails, we should clean up the auth user
+        await supabase.auth.admin.deleteUser(authData.user.id);
         throw managerError;
       }
       
@@ -57,8 +64,8 @@ export function useManagerForm(onSuccess: () => void) {
         console.log("Created manager record:", managerData);
         
         toast({
-          title: "Manager created",
-          description: `New manager account created successfully`,
+          title: "Manager account created",
+          description: `New manager account created for ${values.email}`,
         });
         
         form.reset();
