@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useAuth } from "@/contexts/auth";
 import { Button } from "@/components/ui/button";
@@ -22,7 +21,7 @@ export default function Register() {
       await signUp(email, password, phone);
       navigate("/auth/login");
     } catch (error) {
-      console.error("Registration error:", error);
+      console.error("Registration failed:", error);
     } finally {
       setLoading(false);
     }

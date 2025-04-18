@@ -1,10 +1,9 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./contexts/auth";
+import { AuthProvider } from "./contexts/auth/AuthProvider";
 
 // Pages
 import Index from "./pages/Index";
@@ -38,11 +37,12 @@ const App = () => (
               <Route path="/auth/login" element={<Login />} />
               <Route path="/auth/register" element={<Register />} />
               <Route path="/beaches/:id/reserve" element={<BeachDetail />} />
+              <Route path="/reservations/:id" element={<ReservationDetail />} />
             </Route>
 
-            {/* Dashboard Layout */}
+            {/* Dashboard Layout - Protected Routes */}
             <Route element={
-              <ProtectedRoute allowedRoles={["admin"]}>
+              <ProtectedRoute>
                 <DashboardLayout />
               </ProtectedRoute>
             }>
@@ -50,7 +50,6 @@ const App = () => (
               <Route path="/beaches" element={<BeachesList />} />
               <Route path="/beaches/:id" element={<BeachDetail />} />
               <Route path="/reservations" element={<MyReservations />} />
-              <Route path="/reservations/:id" element={<ReservationDetail />} />
               <Route path="/admin" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <AdminDashboard />

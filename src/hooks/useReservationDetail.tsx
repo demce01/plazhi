@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Reservation, Beach, Set } from "@/types";
@@ -48,6 +47,7 @@ export function useReservationDetail(reservationId: string | undefined) {
       setSets(reservedSets);
       
     } catch (error: any) {
+      console.error("Failed to load reservation:", error);
       toast({
         title: "Error loading reservation",
         description: error.message,
@@ -84,8 +84,8 @@ export function useReservationDetail(reservationId: string | undefined) {
     } catch (error: any) {
       console.error("Failed to check in guest:", error);
       toast({
-        title: "Error checking in guest",
-        description: error.message,
+        title: "Check-in Failed",
+        description: "Could not update check-in status. Please try again.",
         variant: "destructive",
       });
     }

@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { UserSession } from "@/types";
@@ -6,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuthOperations } from "./useAuthOperations";
 import { AuthContextType } from "./types";
 import { fetchUserData } from "./useUserData";
+import { toast } from "@/components/ui/use-toast";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -40,6 +40,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // Listen for auth changes
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
         async (event, session) => {
+          console.log('[AuthProvider] onAuthStateChange event:', event, 'Session:', !!session);
           setSession(session);
           setUser(session?.user ?? null);
           
@@ -52,6 +53,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               clientId: null,
               loading: false,
             });
+            console.log('[AuthProvider] User session cleared on SIGNED_OUT');
           }
         }
       );
@@ -68,6 +70,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   
   // Fetch user data (client, manager status)
   const handleUserAuthenticated = async (userId: string, email?: string) => {
+    console.log(`[AuthProvider] handleUserAuthenticated called for userId: ${userId}`);
     setUserSession(prev => ({ ...prev, loading: true }));
     
     try {
@@ -76,8 +79,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         ...userData,
         loading: false
       });
+      console.log('[AuthProvider] handleUserAuthenticated success. Role:', userData.role, 'ClientId:', userData.clientId);
     } catch (error) {
-      console.error("Error in handleUserAuthenticated:", error);
+      console.error("Error fetching user session data:", error);
+      toast({ 
+        title: "Error Loading User",
+        description: "Could not load your user session. Please try refreshing.",
+        variant: "destructive",
+      });
+      console.log('[AuthProvider] handleUserAuthenticated failed.');
       setUserSession(prev => ({ ...prev, loading: false }));
     }
   };

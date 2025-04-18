@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -46,8 +45,8 @@ export function useReservationActions(reservation: Reservation | null) {
     } catch (error: any) {
       console.error("Failed to cancel reservation:", error);
       toast({
-        title: "Error cancelling reservation",
-        description: error.message,
+        title: "Cancellation Failed",
+        description: error.message || "An unexpected error occurred.",
         variant: "destructive",
       });
       return false;

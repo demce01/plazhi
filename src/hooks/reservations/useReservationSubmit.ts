@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Beach, Set, UserSession } from "@/types";
 import { useToast } from "@/hooks/use-toast";
@@ -18,7 +17,8 @@ export function useReservationSubmit(
   const { user, clientId } = userSession;
 
   const handleReservation = async () => {
-    if (!user || !clientId) {
+    if (!user || !clientId || !beach) {
+      toast({ title: "Error", description: "User or beach data missing.", variant: "destructive" });
       return false;
     }
     
@@ -34,6 +34,28 @@ export function useReservationSubmit(
     try {
       setIsProcessing(true);
       console.log("Creating reservation for logged-in user with clientId:", clientId);
+      
+      // Check set availability again before proceeding
+      const selectedSetIds = selectedSets.map(s => s.id);
+      const { data: currentSets, error: checkError } = await supabase
+        .from("sets")
+        .select("id, status")
+        .in("id", selectedSetIds);
+      
+      if (checkError) {
+        console.error("Error checking set availability:", checkError);
+        toast({ title: "Reservation Failed", description: "Could not verify set availability. Please try again.", variant: "destructive" });
+        setIsProcessing(false);
+        return false;
+      }
+      
+      const alreadyReserved = currentSets?.find(s => s.status === "reserved");
+      if (alreadyReserved) {
+        toast({ title: "Set Unavailable", description: `Sorry, one or more selected sets (ID: ${alreadyReserved.id.substring(0,8)}...) were just booked. Please select different sets.`, variant: "destructive" });
+        setIsProcessing(false);
+        // TODO: Optionally refresh available sets for the user
+        return false;
+      }
       
       // Create the reservation
       const totalAmount = selectedSets.reduce(
@@ -54,6 +76,7 @@ export function useReservationSubmit(
       
       if (reservationError) {
         console.error("Reservation creation error:", reservationError);
+        toast({ title: "Reservation Failed", description: reservationError.message || "Could not create reservation record.", variant: "destructive" });
         throw reservationError;
       }
       
@@ -72,6 +95,7 @@ export function useReservationSubmit(
       
       if (setsError) {
         console.error("Reservation sets error:", setsError);
+        toast({ title: "Reservation Partially Failed", description: setsError.message || "Could not link sets to reservation. Please contact support.", variant: "destructive" });
         throw setsError;
       }
       
@@ -81,14 +105,15 @@ export function useReservationSubmit(
       });
       
       // Redirect to reservation confirmation page
-      navigate(`/reservations/${reservation.id}`);
+      console.log('[useReservationSubmit] Navigating to confirmation. User Session:', userSession);
+      navigate(`/reservations/${reservation.id}`, { state: { justReserved: true } });
       return true;
       
     } catch (error: any) {
       console.error("Reservation error:", error);
       toast({
         title: "Reservation failed",
-        description: error.message,
+        description: error.message || "An unexpected error occurred during reservation.",
         variant: "destructive",
       });
       return false;
@@ -110,10 +135,36 @@ export function useReservationSubmit(
       });
       return false;
     }
+    if (!beach) {
+      toast({ title: "Error", description: "Beach data missing.", variant: "destructive" });
+      return false;
+    }
     
     try {
       setIsProcessing(true);
       console.log("Creating guest reservation with data:", guestData);
+      
+      // Check set availability again before proceeding
+      const selectedSetIds = selectedSets.map(s => s.id);
+      const { data: currentSets, error: checkError } = await supabase
+        .from("sets")
+        .select("id, status")
+        .in("id", selectedSetIds);
+      
+      if (checkError) {
+        console.error("Error checking set availability:", checkError);
+        toast({ title: "Reservation Failed", description: "Could not verify set availability. Please try again.", variant: "destructive" });
+        setIsProcessing(false);
+        return false;
+      }
+      
+      const alreadyReserved = currentSets?.find(s => s.status === "reserved");
+      if (alreadyReserved) {
+        toast({ title: "Set Unavailable", description: `Sorry, one or more selected sets (ID: ${alreadyReserved.id.substring(0,8)}...) were just booked. Please select different sets.`, variant: "destructive" });
+        setIsProcessing(false);
+        // TODO: Optionally refresh available sets for the user
+        return false;
+      }
       
       // Create the reservation
       const totalAmount = selectedSets.reduce(
@@ -121,23 +172,27 @@ export function useReservationSubmit(
         0
       );
       
+      const reservationDataToInsert = {
+        beach_id: beach?.id,
+        guest_name: guestData.name,
+        guest_phone: guestData.phone,
+        guest_email: guestData.email || null,
+        reservation_date: format(selectedDate, "yyyy-MM-dd"),
+        payment_amount: totalAmount,
+        status: "confirmed",
+        payment_status: "completed",
+      };
+      console.log('[handleGuestReservation] Inserting data:', JSON.stringify(reservationDataToInsert));
+
       const { data: reservation, error: reservationError } = await supabase
         .from("reservations")
-        .insert({
-          beach_id: beach?.id,
-          guest_name: guestData.name,
-          guest_phone: guestData.phone,
-          guest_email: guestData.email || null,
-          reservation_date: format(selectedDate, "yyyy-MM-dd"),
-          payment_amount: totalAmount,
-          status: "confirmed", // Auto-confirm guest reservations
-          payment_status: "completed", // Consider it paid for simplicity
-        })
+        .insert(reservationDataToInsert)
         .select()
         .single();
       
       if (reservationError) {
         console.error("Guest reservation error:", reservationError);
+        toast({ title: "Reservation Failed", description: reservationError.message || "Could not create reservation record.", variant: "destructive" });
         throw reservationError;
       }
       
@@ -156,6 +211,7 @@ export function useReservationSubmit(
       
       if (setsError) {
         console.error("Reservation sets error:", setsError);
+        toast({ title: "Reservation Partially Failed", description: setsError.message || "Could not link sets to reservation. Please contact support.", variant: "destructive" });
         throw setsError;
       }
       
@@ -165,14 +221,15 @@ export function useReservationSubmit(
       });
       
       // Redirect to reservation confirmation page
-      navigate(`/reservations/${reservation.id}`);
+      console.log('[useReservationSubmit] Navigating to confirmation after GUEST reservation.');
+      navigate(`/reservations/${reservation.id}`, { state: { justReserved: true } });
       return true;
       
     } catch (error: any) {
       console.error("Guest reservation error:", error);
       toast({
         title: "Reservation failed",
-        description: error.message,
+        description: error.message || "An unexpected error occurred during guest reservation.",
         variant: "destructive",
       });
       return false;

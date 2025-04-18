@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Beach } from "@/types";
@@ -17,6 +16,7 @@ export function useAdminDashboard() {
   const fetchAllBeaches = async () => {
     try {
       setLoading(true);
+      setBeaches([]);
       const { data, error } = await supabase
         .from('beaches')
         .select('*')

@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { UserRole, UserSession } from "@/types";
 
@@ -40,7 +39,7 @@ export async function fetchUserData(userId: string, userEmail: string | undefine
       clientId
     };
   } catch (error) {
-    console.error("Error fetching user data:", error);
+    console.error("Error fetching user role/client data:", error);
     return {
       user: {
         id: userId,

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Beach } from "@/types";
 import {
@@ -12,6 +11,8 @@ import { BeachContent } from "./BeachContent";
 import { BeachDeleteDialog } from "./BeachDeleteDialog";
 import { useBeachData } from "./useBeachData";
 import { useBeachOperations } from "./useBeachOperations";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface BeachManagementProps {
   beach: Beach;
@@ -19,6 +20,7 @@ interface BeachManagementProps {
 }
 
 export function BeachManagement({ beach, onUpdate }: BeachManagementProps) {
+  const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);

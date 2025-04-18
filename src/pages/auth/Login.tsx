@@ -1,10 +1,10 @@
-
 import { useState } from "react";
 import { useAuth } from "@/contexts/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -21,11 +21,30 @@ export default function Login() {
       await signIn(email, password);
       navigate("/");
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("Login failed:", error);
     } finally {
       setLoading(false);
     }
   };
+
+  // Temporary function to test anon role
+  const testAnonRole = async () => {
+    console.log('Testing anon role...');
+    try {
+        // Temporarily cast to any to bypass RPC type issue
+        const { data, error } = await (supabase as any).rpc('get_current_auth_role', {}); 
+        if (error) {
+            console.error('Anon Role RPC Error:', error);
+            alert(`Anon Role Check Error: ${error.message}`);
+        } else {
+            console.log('Anon Role RPC Success. Role:', data);
+            alert(`Database sees anon role as: ${data}`);
+        }
+    } catch(e) {
+         console.error('Anon Role Catch Error:', e);
+         alert('Anon Role Check Failed (catch)');
+    }
+  }
 
   return (
     <div className="flex justify-center items-center min-h-[calc(100vh-16rem)]">
@@ -81,6 +100,10 @@ export default function Login() {
             </p>
           </CardFooter>
         </form>
+        {/* Temporary Test Button */}
+        <CardFooter>
+          <Button variant="outline" onClick={testAnonRole} className="w-full mt-4">Test Anon Role (Click when logged out)</Button>
+        </CardFooter>
       </Card>
     </div>
   );

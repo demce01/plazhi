@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Beach, Set, Zone } from "@/types";
 import { useToast } from "@/hooks/use-toast";
@@ -7,6 +6,9 @@ import { supabase } from "@/integrations/supabase/client";
 export function useBeachOperations(beach: Beach, onUpdate: () => void) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+
+  // Log the beach object received by the hook
+  console.log(`[useBeachOperations] Hook initialized for Beach:`, JSON.stringify(beach));
 
   const handleBeachUpdate = (updatedBeach: Beach) => {
     toast({
@@ -17,74 +19,89 @@ export function useBeachOperations(beach: Beach, onUpdate: () => void) {
   };
 
   const handleDeleteBeach = async () => {
+    // Log the beach ID being used for deletion *inside* the handler
+    console.log(`[handleDeleteBeach] Attempting to delete beach ID: ${beach?.id}`);
+    if (!beach?.id) {
+        console.error("[handleDeleteBeach] Aborting delete: Beach ID is missing.");
+        toast({ title: "Delete Failed", description: "Cannot delete beach, ID is missing.", variant: "destructive" });
+        return;
+    }
     try {
       setIsLoading(true);
       
       // Delete all zones belonging to this beach
+      console.log(`[handleDeleteBeach] Deleting zones for beach ${beach.id}...`);
+      // Try explicitly requesting no data back
       const { error: zonesError } = await supabase
         .from("zones")
         .delete()
         .eq("beach_id", beach.id);
       
-      if (zonesError) throw zonesError;
+      // Log the specific result of deleting zones
+      console.log('[handleDeleteBeach] Zones delete result:', { zonesError });
+      if (zonesError) {
+        console.error('[handleDeleteBeach] Error deleting zones:', zonesError);
+        throw zonesError;
+      }
+      console.log(`[handleDeleteBeach] Zones deleted.`);
       
       // Delete all sets belonging to this beach
+      console.log(`[handleDeleteBeach] Deleting sets for beach ${beach.id}...`);
+      // Try explicitly requesting no data back
       const { error: setsError } = await supabase
         .from("sets")
         .delete()
         .eq("beach_id", beach.id);
       
-      if (setsError) throw setsError;
-      
-      // Check for reservations related to this beach
-      const { data: reservations, error: reservationsError } = await supabase
-        .from("reservations")
-        .select("id")
-        .eq("beach_id", beach.id);
-        
-      if (reservationsError) throw reservationsError;
-      
-      // If there are reservations, delete them
-      if (reservations && reservations.length > 0) {
-        // Delete reservation_sets for each reservation
-        for (const reservation of reservations) {
-          const { error: rSetsError } = await supabase
-            .from("reservation_sets")
-            .delete()
-            .eq("reservation_id", reservation.id);
-            
-          if (rSetsError) throw rSetsError;
-        }
-        
-        // Now delete the reservations
-        const { error: deleteReservationsError } = await supabase
-          .from("reservations")
-          .delete()
-          .eq("beach_id", beach.id);
-          
-        if (deleteReservationsError) throw deleteReservationsError;
+      // Log the specific result of deleting sets
+      console.log('[handleDeleteBeach] Sets delete result:', { setsError });
+      if (setsError) {
+        console.error('[handleDeleteBeach] Error deleting sets:', setsError);
+        throw setsError;
       }
+      console.log(`[handleDeleteBeach] Sets deleted.`);
       
       // Finally delete the beach itself
-      const { error } = await supabase
+      console.log(`[handleDeleteBeach] Deleting beach record ${beach.id}...`);
+      // Try explicitly requesting no data back
+      const { error: beachError } = await supabase
         .from("beaches")
         .delete()
         .eq("id", beach.id);
 
-      if (error) throw error;
+      // Log the specific result of deleting the beach
+      console.log('[handleDeleteBeach] Beach delete result:', { beachError });
+      if (beachError) {
+         console.error('[handleDeleteBeach] Error deleting beach record:', beachError);
+         throw beachError;
+      }
+      console.log(`[handleDeleteBeach] Beach record reported deleted by client.`);
 
       toast({
         title: "Beach deleted",
         description: `${beach.name} has been successfully deleted.`,
       });
+      console.log('[handleDeleteBeach] Calling onUpdate() after a short delay...');
+      // Add a small delay before refreshing UI
+      await new Promise(resolve => setTimeout(resolve, 100)); 
       onUpdate();
+      console.log('[handleDeleteBeach] onUpdate() called.');
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: `Failed to delete beach: ${error.message}`,
+      // Detailed error logging
+      console.error("-----------------------------------");
+      console.error("[handleDeleteBeach] CAUGHT ERROR:", error);
+      console.error("Error Type:", typeof error);
+      console.error("Error Keys:", Object.keys(error || {}));
+      console.error("Error Message:", error?.message);
+      console.error("Error Code:", error?.code);
+      console.error("Full Error String:", JSON.stringify(error, null, 2));
+      console.error("-----------------------------------");
+      
+      toast({ 
+        title: "Delete Failed",
+        description: error?.message || "An unexpected error occurred during delete.", // Use optional chaining
         variant: "destructive",
       });
-      console.error("Delete beach error:", error);
     } finally {
       setIsLoading(false);
     }

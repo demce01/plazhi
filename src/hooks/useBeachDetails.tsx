@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Beach, Zone } from "@/types";
 import type { Set } from "@/types"; // Changed to type-only import to avoid conflict with global Set
@@ -64,15 +63,16 @@ export function useBeachDetails(beachId: string | undefined) {
         .order("name");
       
       if (error) {
-        console.error("Error fetching zones:", error);
+        toast({
+          title: "Error loading beach zones",
+          description: error.message,
+          variant: "destructive",
+        });
         throw error;
       }
       
-      console.log("Fetched zones:", data);
-      
       setZones(data || []);
     } catch (error: any) {
-      console.error("Error in fetchBeachZones:", error);
       toast({
         title: "Error loading beach zones",
         description: error.message,
@@ -92,8 +92,6 @@ export function useBeachDetails(beachId: string | undefined) {
         .order("position");
       
       if (setsError) throw setsError;
-      
-      console.log("All sets fetched:", allSets?.length || 0);
       
       // Fetch reserved sets for this date
       const formattedDate = format(date, "yyyy-MM-dd");
@@ -123,8 +121,6 @@ export function useBeachDetails(beachId: string | undefined) {
         ...set,
         status: reservedSetIds.has(set.id) ? "reserved" : "available"
       })) || [];
-      
-      console.log("Fetched sets:", updatedSets.length);
       
       setSets(updatedSets);
       setReservedSets(updatedSets.filter(set => set.status === "reserved"));
