@@ -1,4 +1,3 @@
-
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { cn } from "@/lib/utils";
@@ -8,6 +7,7 @@ import {
   CalendarDays,
   Settings,
   LogOut,
+  PlusCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -34,7 +34,8 @@ const MenuItem = ({
 
 export function DashboardSidebar() {
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { userSession, signOut } = useAuth();
+  const role = userSession?.role;
 
   const handleSignOut = async () => {
     await signOut();
@@ -63,6 +64,12 @@ export function DashboardSidebar() {
         <MenuItem to="/settings" icon={Settings}>
           Settings
         </MenuItem>
+
+        {(role === 'admin' || role === 'employee') && (
+          <MenuItem to="/admin/create-reservation" icon={PlusCircle}>
+            Create On-Site Booking
+          </MenuItem>
+        )}
       </div>
 
       <div className="border-t p-4">

@@ -47,47 +47,17 @@ export function useReservationDetail(reservationId: string | undefined) {
       setSets(reservedSets);
       
     } catch (error: any) {
-      console.error("Failed to load reservation:", error);
+      console.error("Failed to load reservation details:", error);
       toast({
-        title: "Error loading reservation",
-        description: error.message,
+        title: "Error Loading Reservation",
+        description: `Could not load reservation details: ${error.message}`,
         variant: "destructive",
       });
-      navigate("/beaches");
+      setReservation(null);
+      setBeach(null);
+      setSets([]);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleCheckIn = async () => {
-    if (!reservation || !reservationId) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from("reservations")
-        .update({ 
-          checked_in: true,
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", reservationId)
-        .select();
-      
-      if (error) throw error;
-      
-      console.log("Check-in successful", data);
-      setReservation({ ...reservation, checked_in: true });
-      
-      toast({
-        title: "Guest checked in",
-        description: "Guest has been successfully checked in",
-      });
-    } catch (error: any) {
-      console.error("Failed to check in guest:", error);
-      toast({
-        title: "Check-in Failed",
-        description: "Could not update check-in status. Please try again.",
-        variant: "destructive",
-      });
     }
   };
 
@@ -100,7 +70,6 @@ export function useReservationDetail(reservationId: string | undefined) {
     reservation,
     beach,
     sets,
-    handleCheckIn,
     formatReservationId
   };
 }

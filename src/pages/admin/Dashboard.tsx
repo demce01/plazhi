@@ -1,9 +1,10 @@
-
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { Loader2 } from "lucide-react";
 import { useAdminDashboard } from "@/components/admin/useAdminDashboard";
 import { BeachesTab } from "@/components/admin/BeachesTab";
+import { UserManagementTab } from "@/components/admin/UserManagementTab";
+import { ReservationManagementTab } from "@/components/admin/ReservationManagementTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function AdminDashboard() {
@@ -33,8 +34,9 @@ export default function AdminDashboard() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="beaches">Beaches</TabsTrigger>
+          <TabsTrigger value="users">Users</TabsTrigger>
         </TabsList>
         
         <TabsContent value="beaches">
@@ -49,6 +51,10 @@ export default function AdminDashboard() {
               onUpdate={fetchAllBeaches} 
             />
           )}
+        </TabsContent>
+
+        <TabsContent value="users">
+          <UserManagementTab />
         </TabsContent>
       </Tabs>
     </div>

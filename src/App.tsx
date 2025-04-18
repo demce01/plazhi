@@ -10,12 +10,16 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import FindReservation from "./pages/FindReservation";
 import BeachesList from "./pages/beaches/BeachesList";
 import BeachDetail from "./pages/beaches/BeachDetail";
 import AdminDashboard from "./pages/admin/Dashboard";
 import DashboardOverview from "./pages/dashboard/Overview";
 import ReservationDetail from "./pages/reservations/ReservationDetail";
-import MyReservations from "./pages/reservations/MyReservations";
+import ReservationsRouter from "./pages/reservations/ReservationsRouter";
+import AdminReservationDetail from "./pages/admin/AdminReservationDetail";
+import CreateOnSiteReservation from "./pages/admin/CreateOnSiteReservation";
 
 // Layouts
 import { MainLayout } from "./components/layout/MainLayout";
@@ -34,8 +38,11 @@ const App = () => (
           <Routes>
             <Route element={<MainLayout />}>
               <Route path="/" element={<Index />} />
+              <Route path="/find-reservation" element={<FindReservation />} />
               <Route path="/auth/login" element={<Login />} />
               <Route path="/auth/register" element={<Register />} />
+              <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+              <Route path="/beaches" element={<BeachesList />} />
               <Route path="/beaches/:id/reserve" element={<BeachDetail />} />
               <Route path="/reservations/:id" element={<ReservationDetail />} />
             </Route>
@@ -47,14 +54,22 @@ const App = () => (
               </ProtectedRoute>
             }>
               <Route path="/dashboard" element={<DashboardOverview />} />
-              <Route path="/beaches" element={<BeachesList />} />
               <Route path="/beaches/:id" element={<BeachDetail />} />
-              <Route path="/reservations" element={<MyReservations />} />
+              <Route path="/reservations" element={<ReservationsRouter />} />
               <Route path="/admin" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <AdminDashboard />
                 </ProtectedRoute>
               } />
+              <Route path="/admin/reservations/:id" element={<ProtectedRoute allowedRoles={["admin"]}><AdminReservationDetail /></ProtectedRoute>} />
+              <Route 
+                path="/admin/create-reservation" 
+                element={
+                  <ProtectedRoute allowedRoles={["admin", "employee"]}>
+                    <CreateOnSiteReservation />
+                  </ProtectedRoute>
+                }
+              />
             </Route>
 
             <Route path="*" element={<NotFound />} />

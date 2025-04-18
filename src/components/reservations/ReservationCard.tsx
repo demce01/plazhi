@@ -1,17 +1,20 @@
-
 import { format } from "date-fns";
-import { Calendar, MapPin, DollarSign } from "lucide-react";
+import { Calendar, MapPin, DollarSign, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Reservation } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge, PaymentStatusBadge, CheckinBadge } from "@/components/reservations/management/StatusBadges";
+import { useReservationActions } from "@/hooks/reservations/useReservationActions";
 
 interface ReservationCardProps {
   reservation: Reservation & { beach_name?: string };
+  onCancel?: () => void;
 }
 
-export function ReservationCard({ reservation }: ReservationCardProps) {
+export function ReservationCard({ reservation, onCancel }: ReservationCardProps) {
+  const { isCancellable, isProcessing: isCancelling } = useReservationActions(reservation);
+  
   // Format date for better display
   const formattedDate = format(new Date(reservation.reservation_date), 'MMM dd, yyyy');
   const isPast = new Date(reservation.reservation_date) < new Date();
@@ -58,10 +61,21 @@ export function ReservationCard({ reservation }: ReservationCardProps) {
           )}
         </div>
       </CardContent>
-      <CardFooter>
+      <CardFooter className="flex flex-col items-stretch gap-2 pt-4">
         <Button variant="outline" className="w-full" asChild>
           <Link to={`/reservations/${reservation.id}`}>View Details</Link>
         </Button>
+        {onCancel && isCancellable && (
+          <Button 
+            variant="destructive" 
+            className="w-full" 
+            onClick={onCancel}
+            disabled={isCancelling}
+          >
+            <AlertTriangle className="h-4 w-4 mr-2" />
+            {isCancelling ? "Cancelling..." : "Cancel Reservation"}
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );

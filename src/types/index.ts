@@ -1,5 +1,6 @@
-
 import { Database } from "@/integrations/supabase/types";
+
+export type { Database };
 
 export type Beach = Database["public"]["Tables"]["beaches"]["Row"];
 export type Set = Database["public"]["Tables"]["sets"]["Row"];
@@ -10,7 +11,10 @@ export type ReservationSet = Database["public"]["Tables"]["reservation_sets"]["R
 export type Client = Database["public"]["Tables"]["clients"]["Row"];
 export type Zone = Database["public"]["Tables"]["zones"]["Row"];
 
-export type UserRole = "client" | "admin";
+export type UserRole = "client" | "admin" | "employee";
+
+// Type for data needed in public beach list
+export type PublicBeachInfo = Pick<Beach, 'id' | 'name' | 'description' | 'location'>;
 
 export interface UserSession {
   user: {

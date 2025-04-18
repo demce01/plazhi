@@ -7,9 +7,15 @@ import { ReservationCard } from "@/components/reservations/ReservationCard";
 import { MyReservationsFilterBar } from "@/components/reservations/MyReservationsFilterBar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState, useMemo } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { toast as sonnerToast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
+import { Reservation } from "@/types";
 
 export default function MyReservations() {
-  const { loading, reservations } = useMyReservations();
+  const { toast } = useToast();
+  const { loading, reservations, fetchReservations } = useMyReservations();
   const { userSession } = useAuth();
   const navigate = useNavigate();
 
@@ -76,6 +82,35 @@ export default function MyReservations() {
   const pastReservations = filteredReservations.filter(
     res => new Date(res.reservation_date) < new Date() || res.status === 'cancelled'
   );
+
+  // Function to handle cancellation from a card
+  const handleCancelReservationWrapper = async (reservation: Reservation & { beach_name?: string }) => {
+    if (!reservation || reservation.status === 'cancelled' || reservation.checked_in) {
+      toast({ title: "Cannot Cancel", description: "Reservation is already cancelled or checked in.", variant: "destructive" });
+      return;
+    }
+    
+    if (!confirm(`Are you sure you want to cancel the reservation for ${reservation.beach_name || 'Unknown Beach'} on ${format(new Date(reservation.reservation_date), 'MMM dd, yyyy')}?`)) {
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from("reservations")
+        .update({ status: "cancelled", updated_at: new Date().toISOString() })
+        .eq("id", reservation.id)
+        .select();
+        
+      if (error) throw error;
+      
+      sonnerToast.success("Reservation cancelled successfully");
+      fetchReservations();
+      
+    } catch (error: any) {
+      console.error("Failed to cancel reservation from list:", error);
+      toast({ title: "Cancellation Failed", description: error.message || "An unexpected error occurred.", variant: "destructive" });
+    }
+  };
 
   return (
     <div className="container max-w-6xl py-6 space-y-8">
@@ -149,7 +184,11 @@ export default function MyReservations() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {upcomingReservations.map((reservation) => (
-                    <ReservationCard key={reservation.id} reservation={reservation} />
+                    <ReservationCard 
+                      key={reservation.id} 
+                      reservation={reservation} 
+                      onCancel={() => handleCancelReservationWrapper(reservation)} 
+                    />
                   ))}
                 </div>
               )}
@@ -163,7 +202,10 @@ export default function MyReservations() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {pastReservations.map((reservation) => (
-                    <ReservationCard key={reservation.id} reservation={reservation} />
+                    <ReservationCard 
+                      key={reservation.id} 
+                      reservation={reservation} 
+                    />
                   ))}
                 </div>
               )}

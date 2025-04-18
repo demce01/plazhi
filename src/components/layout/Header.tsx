@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/contexts/auth";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -63,11 +62,17 @@ export function Header() {
                 </Button>
               </div>
             ) : (
-              <div className="space-x-4">
-                <Button variant="outline" asChild>
+              <div className="space-x-2 md:space-x-4 flex items-center">
+                <Link 
+                  to="/find-reservation" 
+                  className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Find Reservation
+                </Link>
+                <Button variant="outline" size="sm" asChild>
                   <Link to="/auth/login">Sign In</Link>
                 </Button>
-                <Button asChild>
+                <Button size="sm" asChild>
                   <Link to="/auth/register">Sign Up</Link>
                 </Button>
               </div>

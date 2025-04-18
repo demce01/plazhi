@@ -1,4 +1,3 @@
-
 import { useParams } from "react-router-dom";
 import { useReservationDetail } from "@/hooks/useReservationDetail";
 import { ReservationDetailHeader } from "@/components/reservations/ReservationDetailHeader";
@@ -16,7 +15,6 @@ export default function ReservationDetail() {
     reservation,
     beach,
     sets,
-    handleCheckIn,
     formatReservationId
   } = useReservationDetail(id);
 
@@ -24,7 +22,7 @@ export default function ReservationDetail() {
     return <ReservationLoadingState />;
   }
 
-  if (!reservation || !beach) {
+  if (!reservation) {
     return <ReservationNotFound />;
   }
 
@@ -36,7 +34,6 @@ export default function ReservationDetail() {
         <ReservationInfo 
           reservation={reservation} 
           formatReservationId={formatReservationId}
-          onCheckIn={handleCheckIn}
         />
         
         <BeachInfo beach={beach} sets={sets} />

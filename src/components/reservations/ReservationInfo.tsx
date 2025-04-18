@@ -1,4 +1,3 @@
-
 import { Reservation } from "@/types";
 import { Calendar, UserCheck } from "lucide-react";
 import { format } from "date-fns";
@@ -9,10 +8,9 @@ import { Mail, Phone } from "lucide-react";
 interface ReservationInfoProps {
   reservation: Reservation;
   formatReservationId: (id: string) => string;
-  onCheckIn: () => void;
 }
 
-export function ReservationInfo({ reservation, formatReservationId, onCheckIn }: ReservationInfoProps) {
+export function ReservationInfo({ reservation, formatReservationId }: ReservationInfoProps) {
   return (
     <div className="bg-card p-6 rounded-lg border shadow-sm">
       <h2 className="text-lg font-semibold mb-4">Reservation Details</h2>
@@ -48,16 +46,7 @@ export function ReservationInfo({ reservation, formatReservationId, onCheckIn }:
               <UserCheck className="h-4 w-4 mr-1" /> Checked In
             </Badge>
           ) : (
-            reservation.status === 'confirmed' ? (
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="bg-yellow-100 text-yellow-800">Not Checked In</Badge>
-                <Button size="sm" variant="outline" onClick={onCheckIn} className="h-7">
-                  <UserCheck className="h-3 w-3 mr-1" /> Check-in
-                </Button>
-              </div>
-            ) : (
-              <Badge variant="outline" className="bg-yellow-100 text-yellow-800">Not Checked In</Badge>
-            )
+            <Badge variant="outline" className="bg-yellow-100 text-yellow-800">Not Checked In</Badge>
           )}
         </div>
         

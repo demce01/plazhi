@@ -2,42 +2,48 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Beach } from "@/types";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export function useAdminDashboard() {
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
-  const [beaches, setBeaches] = useState<Beach[]>([]);
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("beaches");
 
-  useEffect(() => {
-    fetchAllBeaches();
-  }, []);
-
-  const fetchAllBeaches = async () => {
-    try {
-      setLoading(true);
-      setBeaches([]);
-      const { data, error } = await supabase
+  const { data: beaches = [], isLoading: loading, error: beachesError } = useQuery<Beach[], Error>({
+    queryKey: ['adminBeaches'],
+    queryFn: async () => {
+      const { data, error: queryFnError } = await supabase
         .from('beaches')
         .select('*')
         .order('name');
       
-      if (error) throw error;
-      
-      setBeaches(data || []);
-    } catch (error: any) {
+      if (queryFnError) {
+        console.error("Error loading beaches:", queryFnError);
+        throw new Error(queryFnError.message || "Failed to fetch beaches");
+      }
+      return data || [];
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  useEffect(() => {
+    if (beachesError) {
       toast({
         title: "Error loading beaches",
-        description: error.message,
+        description: beachesError.message || "An unexpected error occurred.",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
+  }, [beachesError, toast]);
+
+  const refreshBeaches = () => {
+    queryClient.invalidateQueries({ queryKey: ['adminBeaches'] });
   };
 
+  const fetchAllBeaches = refreshBeaches;
+
   const handleBeachCreated = (beach: Beach) => {
-    setBeaches(prev => [...prev, beach]);
+    refreshBeaches();
     toast({
       title: "Beach created",
       description: `${beach.name} has been successfully created.`,
@@ -46,10 +52,6 @@ export function useAdminDashboard() {
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
-    // Refresh data when switching to beaches tab
-    if (value === "beaches") {
-      fetchAllBeaches();
-    }
   };
 
   return {

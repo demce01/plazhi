@@ -1,144 +1,105 @@
 import { useState, useEffect } from "react";
-import { Beach, Zone } from "@/types";
-import type { Set } from "@/types"; // Changed to type-only import to avoid conflict with global Set
+import { Beach, Zone, Set, Database } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+
+// Helper function to format date consistently for query keys
+const formatDateKey = (date: Date): string => format(date, "yyyy-MM-dd");
 
 export function useBeachDetails(beachId: string | undefined) {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
-  const [beach, setBeach] = useState<Beach | null>(null);
-  const [sets, setSets] = useState<Set[]>([]);
-  const [zones, setZones] = useState<Zone[]>([]);
-  const [reservedSets, setReservedSets] = useState<Set[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
-  // Fetch beach details
-  useEffect(() => {
-    if (!beachId) return;
-    
-    fetchBeach(beachId);
-  }, [beachId]);
-
-  // Fetch sets and zones when beach or date changes
-  useEffect(() => {
-    if (beach?.id && selectedDate) {
-      fetchBeachSets(beach.id, selectedDate);
-      fetchBeachZones(beach.id);
-    }
-  }, [beach, selectedDate]);
-
-  const fetchBeach = async (beachId: string) => {
-    try {
-      setLoading(true);
+  // Fetch Beach Details
+  const { data: beach, isLoading: isLoadingBeach, error: beachError } = useQuery<Beach | null, Error>({
+    queryKey: ['beachDetails', beachId],
+    queryFn: async () => {
+      if (!beachId) return null;
       const { data, error } = await supabase
         .from("beaches")
         .select("*")
         .eq("id", beachId)
         .single();
-      
-      if (error) throw error;
-      setBeach(data);
-    } catch (error: any) {
-      toast({
-        title: "Error loading beach",
-        description: error.message,
-        variant: "destructive",
-      });
-      navigate("/beaches");
-    } finally {
-      setLoading(false);
-    }
-  };
+      if (error) throw new Error(error.message || "Failed to fetch beach details");
+      return data;
+    },
+    enabled: !!beachId, // Only run if beachId is available
+    staleTime: 15 * 60 * 1000, // Beach details likely don't change often
+  });
 
-  const fetchBeachZones = async (beachId: string) => {
-    try {
+  // Fetch Zones
+  const { data: zones = [], isLoading: isLoadingZones, error: zonesError } = useQuery<Zone[], Error>({
+    queryKey: ['beachZones', beachId],
+    queryFn: async () => {
+      if (!beachId) return [];
       const { data, error } = await supabase
         .from("zones")
         .select("*")
         .eq("beach_id", beachId)
         .order("name");
-      
-      if (error) {
-        toast({
-          title: "Error loading beach zones",
-          description: error.message,
-          variant: "destructive",
-        });
-        throw error;
-      }
-      
-      setZones(data || []);
-    } catch (error: any) {
-      toast({
-        title: "Error loading beach zones",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
+      if (error) throw new Error(error.message || "Failed to fetch zones");
+      return data || [];
+    },
+    enabled: !!beachId, // Only run if beachId is available
+    staleTime: 15 * 60 * 1000,
+  });
 
-  const fetchBeachSets = async (beachId: string, date: Date) => {
-    try {
-      // Fetch all sets for this beach
-      const { data: allSets, error: setsError } = await supabase
-        .from("sets")
-        .select("*")
-        .eq("beach_id", beachId)
-        .order("row_number")
-        .order("position");
+  // Fetch Sets using the RPC to get status directly
+  const { data: sets = [], isLoading: isLoadingSets, error: setsError } = useQuery<Set[], Error>({
+    queryKey: ['beachSetsWithStatus', beachId, formatDateKey(selectedDate)],
+    queryFn: async () => {
+      if (!beachId) return [];
+      const dateString = formatDateKey(selectedDate);
       
-      if (setsError) throw setsError;
-      
-      // Fetch reserved sets for this date
-      const formattedDate = format(date, "yyyy-MM-dd");
-      const { data: reservations, error: reservationsError } = await supabase
-        .from("reservations")
-        .select(`
-          id,
-          reservation_sets (
-            set_id
-          )
-        `)
-        .eq("beach_id", beachId)
-        .eq("reservation_date", formattedDate)
-        .not("status", "eq", "cancelled");
-      
-      if (reservationsError) throw reservationsError;
-      
-      // Mark sets as reserved if they're in a reservation
-      const reservedSetIds = new Set<string>();
-      reservations?.forEach(reservation => {
-        reservation.reservation_sets?.forEach((rs: any) => {
-          reservedSetIds.add(rs.set_id);
-        });
+      // Call the RPC function
+      const { data, error } = await supabase.rpc('get_sets_with_status', { 
+        target_beach_id: beachId,
+        target_date: dateString
       });
       
-      const updatedSets = allSets?.map(set => ({
-        ...set,
-        status: reservedSetIds.has(set.id) ? "reserved" : "available"
-      })) || [];
-      
-      setSets(updatedSets);
-      setReservedSets(updatedSets.filter(set => set.status === "reserved"));
-    } catch (error: any) {
+      // Log the raw RPC response
+      console.log(`[useBeachDetails] RPC response for ${dateString}:`, { data, error });
+
+      if (error) {
+        console.error("RPC get_sets_with_status error:", error);
+        throw new Error(error.message || "Failed to fetch set availability");
+      }
+      // The RPC result should match the structure, potentially needs casting if types aren't perfect
+      return (data as Set[]) || []; 
+    },
+    enabled: !!beachId, 
+    staleTime: 1 * 60 * 1000, // Keep relatively short stale time for availability
+  });
+
+  // Combined loading state
+  const loading = isLoadingBeach || isLoadingZones || isLoadingSets;
+  
+  // Handle errors (consider more specific error handling)
+  useEffect(() => {
+    const firstError = beachError || zonesError || setsError;
+    if (firstError) {
       toast({
-        title: "Error loading beach sets",
-        description: error.message,
+        title: "Error loading beach data",
+        description: firstError.message || "An unexpected error occurred.",
         variant: "destructive",
       });
+      // Navigate away only if the core beach details fail?
+      if (beachError && !beach) { 
+           console.error("Redirecting due to beachError and no beach data");
+           navigate("/beaches");
+      }
     }
-  };
+  }, [beachError, zonesError, setsError, toast, navigate, beach]);
 
   return {
     loading,
-    beach,
-    sets,
-    zones,
-    reservedSets,
+    beach: beach || null, // Ensure beach is null if undefined
+    sets, 
+    zones, 
     selectedDate,
     setSelectedDate,
   };
