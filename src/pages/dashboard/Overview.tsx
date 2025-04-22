@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,7 +12,8 @@ import {
   BarChart3, 
   Clock,
   Check,
-  X
+  X,
+  Shield
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,7 +25,6 @@ import { useNavigate } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-// Helper type for reservation counts
 interface ReservationStats {
   total: number;
   lastMonth: number;
@@ -42,7 +41,6 @@ interface BeachStats {
 export default function DashboardOverview() {
   const navigate = useNavigate();
   
-  // Fetch beaches count
   const { data: beachesData, isLoading: isLoadingBeaches } = useQuery<BeachStats, Error>({
     queryKey: ['beaches-stats'],
     queryFn: async () => {
@@ -50,12 +48,10 @@ export default function DashboardOverview() {
         .from('beaches')
         .select('*', { count: 'exact', head: true });
       
-      // Count active beaches (with sets)
       const { data: beachesWithSets } = await supabase
         .from('beaches')
         .select('id');
       
-      // Get total capacity from sets
       const { data: sets } = await supabase
         .from('sets')
         .select('id');
@@ -69,7 +65,6 @@ export default function DashboardOverview() {
     },
   });
 
-  // Fetch ADMIN users count
   const { data: adminsCount, isLoading: isLoadingAdmins } = useQuery<number, Error>({
     queryKey: ['admins-count'],
     queryFn: async () => {
@@ -83,14 +78,12 @@ export default function DashboardOverview() {
     staleTime: 10 * 60 * 1000,
   });
 
-  // Fetch reservation stats (including recent)
   const { data: reservationsData, isLoading: isLoadingReservations } = useQuery<ReservationStats, Error>({
     queryKey: ['reservations-stats'],
     queryFn: async () => {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-      // Fetch all relevant reservation data in one go
       const { data, error } = await supabase
         .from('reservations')
         .select(`
@@ -106,7 +99,6 @@ export default function DashboardOverview() {
       const totalCount = data.length;
       const lastMonthCount = data.filter(r => new Date(r.created_at) > thirtyDaysAgo).length;
       
-      // Get top 5 recent reservations, mapping to the expected type
       const recentReservations: ReservationWithBeachAdmin[] = data.slice(0, 5).map((r: any) => ({
           ...(r as Reservation),
           beach_name: r.beach?.name || "Unknown Beach",
@@ -123,7 +115,6 @@ export default function DashboardOverview() {
     staleTime: 2 * 60 * 1000,
   });
 
-  // Fetch upcoming reservations for today
   const { data: todayReservations, isLoading: isLoadingToday } = useQuery<ReservationWithBeachAdmin[], Error>({
     queryKey: ['today-reservations'],
     queryFn: async () => {
@@ -200,7 +191,6 @@ export default function DashboardOverview() {
         </div>
       </div>
 
-      {/* Quick Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="border-l-4 border-l-green-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -282,7 +272,6 @@ export default function DashboardOverview() {
         </Card>
       </div>
 
-      {/* Dashboard Tabs */}
       <Tabs defaultValue="today" className="mt-6">
         <TabsList>
           <TabsTrigger value="today" className="flex items-center">
@@ -367,7 +356,6 @@ export default function DashboardOverview() {
         </TabsContent>
       </Tabs>
 
-      {/* Quick Access Section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
         <Card>
           <CardHeader>
