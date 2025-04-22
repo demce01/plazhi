@@ -9,15 +9,29 @@ interface MenuItemProps {
   icon: React.ElementType;
   children: React.ReactNode;
   className?: string;
+  index?: number;
+  onDragStart?: (index: number) => void;
+  onDragOver?: (e: React.DragEvent, index: number) => void;
+  onDrop?: (index: number) => void;
 }
 
-export function MenuItem({ to, icon: Icon, children, className }: MenuItemProps) {
+export function MenuItem({ 
+  to, 
+  icon: Icon, 
+  children, 
+  className,
+  index,
+  onDragStart,
+  onDragOver,
+  onDrop
+}: MenuItemProps) {
   const [isDraggable, setIsDraggable] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
   const handleDragStart = (e: React.DragEvent) => {
     setIsDragging(true);
-    e.dataTransfer.setData("text/plain", children?.toString() || "");
+    e.dataTransfer.setData("text/plain", index?.toString() || "");
+    onDragStart?.(index || 0);
   };
 
   const handleDragEnd = () => {
@@ -26,18 +40,24 @@ export function MenuItem({ to, icon: Icon, children, className }: MenuItemProps)
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
+    if (index !== undefined) {
+      onDragOver?.(e, index);
+    }
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
+    if (index !== undefined) {
+      onDrop?.(index);
+    }
   };
 
   return (
     <div className="relative flex items-center">
       {isDraggable && (
         <button 
-          className="absolute -left-6 p-1 text-gray-400 hover:text-gray-600"
+          className="absolute -left-6 p-1 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing"
           onMouseDown={(e) => e.preventDefault()}
         >
           <MoveVertical className="h-4 w-4" />
