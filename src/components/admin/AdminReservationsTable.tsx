@@ -22,13 +22,15 @@ interface AdminReservationsTableProps {
   isLoading: boolean;
   onActionComplete?: () => void;
   showCheckInColumn?: boolean;
+  formatReservationId?: (id: string) => string;
 }
 
 export function AdminReservationsTable({ 
   reservations, 
   isLoading, 
   onActionComplete,
-  showCheckInColumn = false
+  showCheckInColumn = false,
+  formatReservationId = (id: string) => id.substring(0, 8).toUpperCase()
 }: AdminReservationsTableProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -100,6 +102,7 @@ export function AdminReservationsTable({
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead>Booking ID</TableHead>
             <TableHead>Guest</TableHead>
             <TableHead>Beach</TableHead>
             <TableHead>Date</TableHead>
@@ -112,6 +115,9 @@ export function AdminReservationsTable({
         <TableBody>
           {reservations.map((reservation) => (
             <TableRow key={reservation.id}>
+              <TableCell className="font-mono">
+                {formatReservationId(reservation.id)}
+              </TableCell>
               <TableCell className="font-medium">
                 {reservation.guest_name || "N/A"}
               </TableCell>
@@ -167,3 +173,4 @@ export function AdminReservationsTable({
     </div>
   );
 }
+

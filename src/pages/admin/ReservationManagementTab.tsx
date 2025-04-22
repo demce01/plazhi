@@ -1,39 +1,33 @@
 
-import { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { useAdminReservations, ReservationWithBeachAdmin } from "@/hooks/admin/useAdminReservations";
 import { AdminReservationsTable } from "@/components/admin/AdminReservationsTable";
-import { useAdminReservations } from "@/hooks/admin/useAdminReservations";
+import { Beach } from "@/types";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FilterX, Search } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { Beach } from "@/types";
+import { cn } from "@/lib/utils";
 
-export default function ReservationManagementTab() {
+interface ReservationManagementTabProps {
+  beaches: Beach[];
+}
+
+export default function ReservationManagementTab({ beaches }: ReservationManagementTabProps) {
   const { isLoading, reservations, refreshReservations } = useAdminReservations();
-  
-  // Fetch beaches for filter
-  const { data: beaches = [] } = useQuery({
-    queryKey: ['beaches'],
-    queryFn: async (): Promise<Beach[]> => {
-      const { data, error } = await supabase
-        .from('beaches')
-        .select('*')
-        .order('name');
-        
-      if (error) throw error;
-      return data || [];
-    }
-  });
   
   // Filter states
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedBeach, setSelectedBeach] = useState("all");
+
+  // Format reservation ID for display (first 8 characters in uppercase)
+  const formatReservationId = (id: string) => {
+    return id.substring(0, 8).toUpperCase();
+  };
 
   // Filter reservations
   const filteredReservations = reservations.filter(reservation => {
@@ -43,7 +37,7 @@ export default function ReservationManagementTab() {
       reservation.guest_name?.toLowerCase().includes(searchLower) ||
       reservation.guest_email?.toLowerCase().includes(searchLower) ||
       reservation.guest_phone?.toLowerCase().includes(searchLower) ||
-      reservation.id.toLowerCase().includes(searchLower);
+      formatReservationId(reservation.id).includes(searchLower);
 
     // Date filter
     const matchesDate = !selectedDate || 
@@ -82,7 +76,7 @@ export default function ReservationManagementTab() {
                 <div className="relative">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search by guest name, email, phone or ID..."
+                    placeholder="Search by guest name, email, phone or Booking ID..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-8"
@@ -135,6 +129,7 @@ export default function ReservationManagementTab() {
               reservations={filteredReservations}
               isLoading={isLoading}
               onActionComplete={refreshReservations}
+              formatReservationId={formatReservationId}
             />
           </div>
         </CardContent>
@@ -142,3 +137,4 @@ export default function ReservationManagementTab() {
     </div>
   );
 }
+
