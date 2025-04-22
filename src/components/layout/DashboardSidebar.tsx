@@ -30,8 +30,8 @@ const MenuItem = ({
   <Link
     to={to}
     className={cn(
-      "flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50",
-      "hover:bg-gray-100 dark:hover:bg-gray-800",
+      "flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900",
+      "hover:bg-gray-100",
       className
     )}
   >
@@ -63,7 +63,7 @@ export function DashboardSidebar() {
           Dashboard
         </MenuItem>
         
-        <MenuItem to="/reservations" icon={CalendarDays}>
+        <MenuItem to="/user/reservations" icon={CalendarDays}>
           Reservations
         </MenuItem>
 
@@ -78,7 +78,7 @@ export function DashboardSidebar() {
           {role === 'admin' && (
             <>
               <MenuItem 
-                to="/settings/admin/beaches" 
+                to="/admin/beaches" 
                 icon={Umbrella}
                 className="ml-6 text-sm"
               >
@@ -86,7 +86,7 @@ export function DashboardSidebar() {
               </MenuItem>
               
               <MenuItem 
-                to="/settings/admin" 
+                to="/admin" 
                 icon={Shield}
                 className="ml-6 text-sm"
               >

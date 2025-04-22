@@ -1,3 +1,4 @@
+
 import { lazy, Suspense } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -16,7 +17,8 @@ const Login = lazy(() => import("@/pages/auth/Login"));
 const Register = lazy(() => import("@/pages/auth/Register"));
 const ForgotPassword = lazy(() => import("@/pages/auth/ForgotPassword"));
 const ResetPassword = lazy(() => import("@/pages/auth/ResetPassword"));
-const Dashboard = lazy(() => import("@/pages/admin/Dashboard"));
+const Dashboard = lazy(() => import("@/pages/dashboard/Dashboard"));
+const AdminDashboard = lazy(() => import("@/pages/admin/Dashboard"));
 const BeachesManagement = lazy(() => import("@/pages/admin/BeachesManagement"));
 const ContentManagement = lazy(() => import("@/pages/admin/ContentManagement"));
 const BeachList = lazy(() => import("@/pages/beaches/BeachList"));
@@ -39,6 +41,16 @@ const router = createBrowserRouter([
         element: (
           <Suspense fallback={<LoadingScreen />}>
             <Index />
+          </Suspense>
+        ),
+      },
+      {
+        path: "dashboard",
+        element: (
+          <Suspense fallback={<LoadingScreen />}>
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
           </Suspense>
         ),
       },
@@ -137,7 +149,7 @@ const router = createBrowserRouter([
         element: (
           <Suspense fallback={<LoadingScreen />}>
             <RoleProtectedRoute roles={["admin"]}>
-              <Dashboard />
+              <AdminDashboard />
             </RoleProtectedRoute>
           </Suspense>
         ),
