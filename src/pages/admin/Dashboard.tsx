@@ -1,4 +1,4 @@
-
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { 
@@ -18,11 +18,8 @@ import { UserManagementTab } from "@/components/admin/UserManagementTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Pagination, PaginationContent, PaginationItem, PaginationLink } from "@/components/ui/pagination";
-import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { AdminReservationsTable } from "@/components/admin/AdminReservationsTable";
+import { BeachSummary, ReservationWithBeachAdmin } from "@/types/admin";
 
 export default function AdminDashboard() {
   const { userSession } = useAuth();
@@ -40,37 +37,32 @@ export default function AdminDashboard() {
     fetchAllBeaches,
     handleBeachCreated
   } = useAdminDashboard();
-  
-  // Fetch recent reservations for the dashboard
-  const { data: recentReservations = [], isLoading: loadingReservations } = useQuery({
+
+  const { 
+    data: recentReservations = [], 
+    isLoading: loadingReservations 
+  } = useQuery<ReservationWithBeachAdmin[]>({
     queryKey: ['recentReservations'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('reservations')
         .select(`
-          id,
-          reservation_date,
-          payment_amount,
-          status,
-          checked_in,
-          created_at,
-          guest_name,
+          *,
           beach:beach_id (id, name)
         `)
         .order('created_at', { ascending: false })
         .limit(5);
         
-      if (error) throw new Error(error.message);
+      if (error) throw error;
       
       return data.map(res => ({
         ...res,
         beach_name: res.beach?.name || 'Unknown Beach'
-      }));
+      })) as ReservationWithBeachAdmin[];
     },
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 2 * 60 * 1000,
   });
-  
-  // Load sets counts for each beach
+
   useEffect(() => {
     const fetchSetsCounts = async () => {
       if (beaches.length === 0) return;
@@ -78,7 +70,6 @@ export default function AdminDashboard() {
       const counts: {[key: string]: number} = {};
       
       for (const beach of beaches) {
-        // Fetch count of sets for each beach
         const { count, error } = await supabase
           .from('sets')
           .select('*', { count: 'exact', head: true })
@@ -94,15 +85,12 @@ export default function AdminDashboard() {
     
     fetchSetsCounts();
   }, [beaches]);
-  
-  // Fetch revenue and reservation statistics
+
   useEffect(() => {
     const fetchStats = async () => {
-      // Get current month boundaries
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
       
-      // Get all reservations for revenue calculation
       const { data: allReservations, error: reservationsError } = await supabase
         .from('reservations')
         .select('payment_amount, status, reservation_date');
@@ -113,12 +101,10 @@ export default function AdminDashboard() {
       }
       
       if (allReservations) {
-        // Calculate total revenue from all confirmed/completed reservations
         const totalRevenue = allReservations
           .filter(r => ['confirmed', 'completed'].includes(r.status || ''))
           .reduce((sum, r) => sum + (Number(r.payment_amount) || 0), 0);
           
-        // Calculate monthly revenue
         const monthlyRevenue = allReservations
           .filter(r => 
             ['confirmed', 'completed'].includes(r.status || '') && 
@@ -131,7 +117,6 @@ export default function AdminDashboard() {
           monthly: monthlyRevenue
         });
         
-        // Get reservation counts
         const totalCount = allReservations.length;
         const activeCount = allReservations.filter(r => 
           ['confirmed', 'pending'].includes(r.status || '') && 
@@ -147,17 +132,14 @@ export default function AdminDashboard() {
     
     fetchStats();
   }, []);
-  
-  // Redirect non-admin users
+
   if (role !== 'admin') {
     navigate('/');
     return null;
   }
 
-  // Get total sets count from our loaded counts
   const totalSets = Object.values(setsCounts).reduce((sum, count) => sum + count, 0);
 
-  // Quick stats for dashboard
   const stats = [
     { 
       title: "Total Revenue", 
@@ -185,7 +167,7 @@ export default function AdminDashboard() {
       description: "Beach & user settings"
     },
   ];
-  
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
@@ -201,7 +183,6 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, index) => (
           <Card key={index} className="hover:shadow-md transition-shadow">
@@ -226,8 +207,7 @@ export default function AdminDashboard() {
           </Card>
         ))}
       </div>
-      
-      {/* Recent Reservations Section */}
+
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
