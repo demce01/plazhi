@@ -15,7 +15,7 @@ interface ReservationManagementTabProps {
   beaches: Beach[];
 }
 
-export default function ReservationManagementTab({ beaches }: ReservationManagementTabProps) {
+export default function ReservationManagementTab({ beaches = [] }: ReservationManagementTabProps) {
   const { isLoading, reservations, refreshReservations } = useAdminReservations();
   
   // Filter states
@@ -107,7 +107,7 @@ export default function ReservationManagementTab({ beaches }: ReservationManagem
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Beaches</SelectItem>
-                    {beaches.map((beach) => (
+                    {beaches && beaches.map((beach) => (
                       <SelectItem key={beach.id} value={beach.id}>
                         {beach.name}
                       </SelectItem>
@@ -137,4 +137,3 @@ export default function ReservationManagementTab({ beaches }: ReservationManagem
     </div>
   );
 }
-

@@ -3,12 +3,19 @@ import { lazy, Suspense } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { RoleProtectedRoute } from "@/components/auth/RoleProtectedRoute";
 import { LoadingSpinner } from "./LoadingSpinner";
+import { useAdminBeachList } from "@/hooks/admin/useAdminBeachList";
 
 // Lazy-loaded admin pages
 const AdminDashboard = lazy(() => import("@/pages/admin/Dashboard"));
 const BeachesManagement = lazy(() => import("@/pages/admin/BeachesManagement"));
 const ContentManagement = lazy(() => import("@/pages/admin/ContentManagement"));
 const ReservationManagementTab = lazy(() => import("@/pages/admin/ReservationManagementTab"));
+
+// Create a wrapper component to pass beaches to ReservationManagementTab
+const ReservationsPage = () => {
+  const { beaches } = useAdminBeachList();
+  return <ReservationManagementTab beaches={beaches} />;
+};
 
 export const adminRoutes = {
   path: "admin",
@@ -49,11 +56,10 @@ export const adminRoutes = {
       element: (
         <Suspense fallback={<LoadingSpinner />}>
           <RoleProtectedRoute roles={["admin"]}>
-            <ReservationManagementTab />
+            <ReservationsPage />
           </RoleProtectedRoute>
         </Suspense>
       ),
     },
   ],
 };
-
