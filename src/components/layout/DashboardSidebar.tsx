@@ -1,7 +1,7 @@
 
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
-import { LayoutDashboard, LogOut } from "lucide-react";
+import { LayoutDashboard, CalendarDays, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MenuItem } from "./sidebar/MenuItem";
 import { ConfigurationMenu } from "./sidebar/ConfigurationMenu";
@@ -25,6 +25,10 @@ export function DashboardSidebar() {
       <div className="flex-1 space-y-1 p-4">
         <MenuItem to="/dashboard" icon={LayoutDashboard}>
           Dashboard
+        </MenuItem>
+
+        <MenuItem to="/user/reservations" icon={CalendarDays}>
+          Reservation Management
         </MenuItem>
 
         <ConfigurationMenu role={role} />
