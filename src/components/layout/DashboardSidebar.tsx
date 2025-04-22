@@ -9,7 +9,9 @@ import {
   Settings,
   LogOut,
   PlusCircle,
-  Shield
+  Shield,
+  Users,
+  DollarSign
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -58,33 +60,44 @@ export function DashboardSidebar() {
           Dashboard
         </MenuItem>
         
-        <MenuItem to="/beaches" icon={Umbrella}>
-          Beaches
-        </MenuItem>
-        
         <MenuItem to="/reservations" icon={CalendarDays}>
           Reservations
         </MenuItem>
 
-        <MenuItem to="/settings" icon={Settings}>
-          Settings
-        </MenuItem>
-
-        {role === 'admin' && (
-          <MenuItem 
-            to="/settings/admin" 
-            icon={Shield}
-            className="ml-6 text-sm"
-          >
-            Admin Dashboard
+        {/* Settings section with configuration options */}
+        <div className="mt-6 pt-6 border-t">
+          <h3 className="px-3 text-sm font-medium text-gray-500 mb-2">Configuration</h3>
+          
+          <MenuItem to="/settings" icon={Settings}>
+            Settings
           </MenuItem>
-        )}
 
-        {(role === 'admin' || role === 'employee') && (
-          <MenuItem to="/settings/admin/create-reservation" icon={PlusCircle}>
-            Create On-Site Booking
-          </MenuItem>
-        )}
+          {role === 'admin' && (
+            <>
+              <MenuItem 
+                to="/settings/admin/beaches" 
+                icon={Umbrella}
+                className="ml-6 text-sm"
+              >
+                Beach Management
+              </MenuItem>
+              
+              <MenuItem 
+                to="/settings/admin/users" 
+                icon={Users}
+                className="ml-6 text-sm"
+              >
+                User Management
+              </MenuItem>
+            </>
+          )}
+
+          {(role === 'admin' || role === 'employee') && (
+            <MenuItem to="/settings/admin/create-reservation" icon={PlusCircle}>
+              Create On-Site Booking
+            </MenuItem>
+          )}
+        </div>
       </div>
 
       <div className="border-t p-4">

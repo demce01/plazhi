@@ -11,12 +11,14 @@ export function Header() {
   const getNavLinks = () => {
     const links = [];
     
-    // All users can see beaches
-    links.push(
-      <Link key="beaches" to="/beaches" className="text-gray-500 hover:text-gray-900 font-medium">
-        Beaches
-      </Link>
-    );
+    // Non-admin users see beaches
+    if (role !== 'admin') {
+      links.push(
+        <Link key="beaches" to="/beaches" className="text-gray-500 hover:text-gray-900 font-medium">
+          Beaches
+        </Link>
+      );
+    }
     
     // All authenticated users can see their reservations
     if (user) {
