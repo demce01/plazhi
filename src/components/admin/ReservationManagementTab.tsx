@@ -82,10 +82,7 @@ export function ReservationManagementTab({ beaches }: ReservationManagementTabPr
                 <DatePicker
                   date={selectedDate}
                   setDate={setSelectedDate}
-                  className={cn(
-                    "w-[240px]",
-                    "border-input bg-background hover:bg-accent hover:text-accent-foreground"
-                  )}
+                  className="w-[240px]"
                   placeholder="Filter by date"
                 />
                 <Select value={selectedStatus} onValueChange={setSelectedStatus}>
