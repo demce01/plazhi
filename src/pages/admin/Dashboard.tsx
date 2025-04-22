@@ -1,11 +1,13 @@
+
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
-import { Loader2 } from "lucide-react";
+import { Loader2, UserPlus } from "lucide-react";
 import { useAdminDashboard } from "@/components/admin/useAdminDashboard";
 import { BeachesTab } from "@/components/admin/BeachesTab";
 import { UserManagementTab } from "@/components/admin/UserManagementTab";
 import { ReservationManagementTab } from "@/components/admin/ReservationManagementTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 
 export default function AdminDashboard() {
   const { userSession } = useAuth();
@@ -20,7 +22,7 @@ export default function AdminDashboard() {
     fetchAllBeaches,
     handleBeachCreated
   } = useAdminDashboard();
-
+  
   // Redirect non-admin users
   if (role !== 'admin') {
     navigate('/');
@@ -34,9 +36,10 @@ export default function AdminDashboard() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="beaches">Beaches</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
+          <TabsTrigger value="reservations">Reservations</TabsTrigger>
         </TabsList>
         
         <TabsContent value="beaches">
@@ -55,6 +58,10 @@ export default function AdminDashboard() {
 
         <TabsContent value="users">
           <UserManagementTab />
+        </TabsContent>
+        
+        <TabsContent value="reservations">
+          <ReservationManagementTab />
         </TabsContent>
       </Tabs>
     </div>
