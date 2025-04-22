@@ -11,7 +11,8 @@ import {
   PlusCircle,
   Shield,
   Users,
-  DollarSign
+  DollarSign,
+  FileText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -49,7 +50,7 @@ export function DashboardSidebar() {
     navigate("/auth/login");
   };
 
-  console.log("Current user role:", role); // Add logging to verify role
+  console.log("Current user role:", role);
 
   return (
     <div className="flex h-full flex-col border-r bg-background">
@@ -90,6 +91,14 @@ export function DashboardSidebar() {
                 className="ml-6 text-sm"
               >
                 Admin Dashboard
+              </MenuItem>
+
+              <MenuItem 
+                to="/admin/content" 
+                icon={FileText}
+                className="ml-6 text-sm"
+              >
+                Content Management
               </MenuItem>
             </>
           )}
