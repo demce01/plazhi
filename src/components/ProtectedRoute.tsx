@@ -1,3 +1,4 @@
+
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { UserRole } from "@/types";
@@ -16,15 +17,7 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
   console.log('[ProtectedRoute] Location:', location.pathname, 'State:', location.state);
   console.log('[ProtectedRoute] Auth State: loading=', loading, 'user=', !!user, 'role=', role, 'justReserved=', justReserved);
 
-  if (loading && !justReserved) {
-    console.log('[ProtectedRoute] Showing loading screen (justReserved is false)');
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  }
-  
-  if (loading && justReserved) {
-    console.log('[ProtectedRoute] Skipping loading screen (justReserved is true)');
-  }
-
+  // Removed the loading state check and loading screen
   if (!user && !loading) {
     console.log('[ProtectedRoute] Redirecting to /auth/login (user is null and not loading)');
     const { justReserved: _, ...stateWithoutFlag } = location.state || {};
