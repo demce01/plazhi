@@ -1,9 +1,7 @@
 import { Reservation } from "@/types";
-import { Calendar, UserCheck } from "lucide-react";
+import { Calendar, UserCheck, Mail, Phone } from "lucide-react";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Mail, Phone } from "lucide-react";
 
 interface ReservationInfoProps {
   reservation: Reservation;
@@ -51,8 +49,10 @@ export function ReservationInfo({ reservation, formatReservationId }: Reservatio
         </div>
         
         <div>
-          <p className="text-sm text-muted-foreground">Reservation For</p>
-          <p>{reservation.guest_name || "Logged-in User"}</p>
+          <p className="text-sm text-muted-foreground">Reserved By</p>
+          <p className="flex items-center font-medium">
+            {reservation.guest_name || "Logged-in User"}
+          </p>
         </div>
         
         {reservation.guest_phone && (
