@@ -1,42 +1,10 @@
-import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "@/contexts/auth";
-import { cn } from "@/lib/utils";
-import {
-  LayoutDashboard,
-  Umbrella,
-  CalendarDays,
-  Settings,
-  LogOut,
-  PlusCircle,
-  Shield,
-  Users,
-  FileText
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
 
-const MenuItem = ({ 
-  to, 
-  icon: Icon, 
-  children,
-  className 
-}: { 
-  to: string; 
-  icon: React.ElementType; 
-  children: React.ReactNode;
-  className?: string;
-}) => (
-  <Link
-    to={to}
-    className={cn(
-      "flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900",
-      "hover:bg-gray-100",
-      className
-    )}
-  >
-    <Icon className="h-4 w-4" />
-    <span>{children}</span>
-  </Link>
-);
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/auth";
+import { LayoutDashboard, LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { MenuItem } from "./sidebar/MenuItem";
+import { ConfigurationMenu } from "./sidebar/ConfigurationMenu";
 
 export function DashboardSidebar() {
   const navigate = useNavigate();
@@ -59,60 +27,7 @@ export function DashboardSidebar() {
           Dashboard
         </MenuItem>
 
-        {/* Configuration section with configuration options */}
-        <div className="mt-6 pt-6 border-t">
-          <h3 className="px-3 text-sm font-medium text-gray-500 mb-2">Configuration</h3>
-          
-          <MenuItem to="/settings" icon={Settings}>
-            Settings
-          </MenuItem>
-
-          <MenuItem to="/user/reservations" icon={CalendarDays}>
-            My Reservations
-          </MenuItem>
-
-          {role === 'admin' && (
-            <>
-              <MenuItem 
-                to="/admin/beaches" 
-                icon={Umbrella}
-                className="ml-6 text-sm"
-              >
-                Beach Management
-              </MenuItem>
-              
-              <MenuItem 
-                to="/admin" 
-                icon={Shield}
-                className="ml-6 text-sm"
-              >
-                Admin Dashboard
-              </MenuItem>
-
-              <MenuItem 
-                to="/admin/content" 
-                icon={FileText}
-                className="ml-6 text-sm"
-              >
-                Content Management
-              </MenuItem>
-              
-              <MenuItem 
-                to="/admin/reservations" 
-                icon={CalendarDays}
-                className="ml-6 text-sm"
-              >
-                Reservation Management
-              </MenuItem>
-            </>
-          )}
-
-          {(role === 'admin' || role === 'employee') && (
-            <MenuItem to="/settings/admin/create-reservation" icon={PlusCircle}>
-              Create On-Site Booking
-            </MenuItem>
-          )}
-        </div>
+        <ConfigurationMenu role={role} />
       </div>
 
       <div className="border-t p-4">
