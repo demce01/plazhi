@@ -9,6 +9,8 @@ export interface AdminManagedUser {
   user_id: string;
   email: string | null;
   role: string | null;
+  created_at?: string;
+  last_sign_in?: string;
 }
 
 export function useAdminUsers() {
@@ -39,11 +41,13 @@ export function useAdminUsers() {
   const { 
     data: users = [], 
     isLoading,
-    error 
+    error,
+    refetch
   } = useQuery<AdminManagedUser[], Error>({
     queryKey: ['adminUsers'],
     queryFn: fetchUsersAdmin,
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    refetchOnWindowFocus: false,
   });
 
   // Handle error state
@@ -66,5 +70,6 @@ export function useAdminUsers() {
     isLoading,
     users,
     refreshUsers,
+    refetch,
   };
 }
