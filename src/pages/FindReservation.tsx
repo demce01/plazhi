@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -24,29 +25,35 @@ export default function FindReservation() {
     setError('');
     
     try {
-      // 1. Fetch reservation by ID (RLS policy allows anon SELECT by ID)
-      const { data: reservation, error: fetchError } = await supabase
+      // Fetch all reservations matching the email or phone
+      const { data: reservations, error: fetchError } = await supabase
         .from('reservations')
-        .select('id, guest_email, guest_phone') // Select only needed fields
-        .eq('id', reservationId.trim())
-        .maybeSingle(); // Use maybeSingle as ID might not exist
+        .select('id, guest_email, guest_phone')
+        .or(`guest_email.ilike.${emailOrPhone.trim().toLowerCase()},guest_phone.eq.${emailOrPhone.trim()}`);
 
       if (fetchError) {
         console.error("Find reservation fetch error:", fetchError);
         throw new Error("Error fetching reservation details.");
       }
 
-      // 2. Check if reservation exists and if email/phone matches
-      if (
-        reservation && 
-        (reservation.guest_email?.toLowerCase() === emailOrPhone.trim().toLowerCase() || 
-         reservation.guest_phone === emailOrPhone.trim())
-      ) {
-        // 3. Found and matches, navigate
+      if (!reservations || reservations.length === 0) {
+        setError("No reservations found with the provided email or phone number.");
+        setIsLoading(false);
+        return;
+      }
+
+      // Find the reservation with the matching shortened ID
+      const formattedId = reservationId.trim().toUpperCase();
+      const foundReservation = reservations.find(res => 
+        res.id.substring(0, 8).toUpperCase() === formattedId
+      );
+
+      if (foundReservation) {
+        // Found and matches, navigate
         toast({ title: "Reservation Found!", description: "Redirecting to your reservation details..." });
-        navigate(`/reservations/${reservation.id}`);
+        navigate(`/reservations/${foundReservation.id}`);
       } else {
-        // 4. Not found or details don't match
+        // Not found or details don't match
         setError("Reservation not found or details incorrect. Please check your input.");
       }
 
@@ -80,6 +87,7 @@ export default function FindReservation() {
                 placeholder="e.g., ABCDEF12" 
                 required 
               />
+              <p className="text-xs text-muted-foreground mt-1">Enter the 8-character ID shown on your confirmation</p>
             </div>
             <div className="space-y-1">
               <label htmlFor="emailOrPhone" className="text-sm font-medium">Email or Phone Number</label>
