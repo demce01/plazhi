@@ -14,8 +14,14 @@ interface AdminMenuItem {
 
 export function AdminMenu() {
   const { toast } = useToast();
-  // Initial menu items
+  // Initial menu items with Reservation Management first
   const initialMenuItems: AdminMenuItem[] = [
+    {
+      to: "/admin/reservations",
+      icon: CalendarDays,
+      label: "Reservation Management",
+      className: "ml-6 text-sm"
+    },
     {
       to: "/admin/beaches",
       icon: Umbrella,
@@ -32,12 +38,6 @@ export function AdminMenu() {
       to: "/admin/content",
       icon: FileText,
       label: "Content Management",
-      className: "ml-6 text-sm"
-    },
-    {
-      to: "/admin/reservations",
-      icon: CalendarDays,
-      label: "Reservation Management",
       className: "ml-6 text-sm"
     }
   ];

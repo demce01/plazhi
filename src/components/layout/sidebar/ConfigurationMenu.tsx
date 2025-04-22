@@ -1,4 +1,3 @@
-
 import { Settings, CalendarDays, PlusCircle } from "lucide-react";
 import { MenuItem } from "./MenuItem";
 import { AdminMenu } from "./AdminMenu";
@@ -31,11 +30,6 @@ export function ConfigurationMenu({ role }: ConfigurationMenuProps) {
       to: "/settings",
       icon: Settings,
       label: "Settings"
-    },
-    {
-      to: "/user/reservations",
-      icon: CalendarDays,
-      label: "My Reservations"
     }
   ];
 
@@ -112,12 +106,6 @@ export function ConfigurationMenu({ role }: ConfigurationMenuProps) {
       ))}
 
       {role === 'admin' && <AdminMenu />}
-
-      {(role === 'admin' || role === 'employee') && (
-        <MenuItem to="/settings/admin/create-reservation" icon={PlusCircle}>
-          Create On-Site Booking
-        </MenuItem>
-      )}
     </div>
   );
 }
