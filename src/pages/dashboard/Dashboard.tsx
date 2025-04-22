@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import DashboardOverview from "./Overview";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 
 export default function Dashboard() {
   const { userSession } = useAuth();
@@ -28,7 +29,11 @@ export default function Dashboard() {
   
   // This is for admin users
   if (role === "admin") {
-    return <DashboardOverview />;
+    return (
+      <DashboardLayout>
+        <DashboardOverview />
+      </DashboardLayout>
+    );
   }
   
   return <LoadingScreen />;
