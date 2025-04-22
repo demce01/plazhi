@@ -10,11 +10,11 @@ export function DashboardLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex bg-gray-50">
       {/* Sidebar */}
       <div
         className={cn(
-          "fixed left-0 top-0 z-20 h-full w-64 transform transition-transform duration-200 ease-in-out",
+          "fixed left-0 top-0 z-20 h-full w-64 transform transition-transform duration-200 ease-in-out bg-white border-r",
           !isSidebarOpen && "-translate-x-full"
         )}
       >
@@ -28,21 +28,24 @@ export function DashboardLayout() {
           isSidebarOpen ? "ml-64" : "ml-0"
         )}
       >
-        <div className="sticky top-0 z-10 bg-background border-b p-4">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="ml-auto block"
-          >
-            {isSidebarOpen ? (
-              <PanelLeftClose className="h-4 w-4" />
-            ) : (
-              <PanelLeftOpen className="h-4 w-4" />
-            )}
-          </Button>
+        <div className="sticky top-0 z-10 bg-white border-b p-4 shadow-sm">
+          <div className="flex justify-between items-center">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            >
+              {isSidebarOpen ? (
+                <PanelLeftClose className="h-4 w-4" />
+              ) : (
+                <PanelLeftOpen className="h-4 w-4" />
+              )}
+            </Button>
+            <h1 className="text-xl font-semibold text-center">BeachEase CMS</h1>
+            <div className="w-10"></div> {/* Spacer for alignment */}
+          </div>
         </div>
-        <div className="p-6">
+        <div className="p-6 max-w-7xl mx-auto">
           <Outlet />
         </div>
       </div>
