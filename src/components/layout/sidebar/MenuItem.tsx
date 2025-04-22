@@ -10,9 +10,10 @@ interface MenuItemProps {
   children: React.ReactNode;
   className?: string;
   index?: number;
+  menuType?: 'admin' | 'config';
   onDragStart?: (index: number) => void;
   onDragOver?: (e: React.DragEvent, index: number) => void;
-  onDrop?: (index: number) => void;
+  onDrop?: (index: number, sourceMenu?: string) => void;
 }
 
 export function MenuItem({ 
@@ -21,6 +22,7 @@ export function MenuItem({
   children, 
   className,
   index,
+  menuType,
   onDragStart,
   onDragOver,
   onDrop
@@ -30,7 +32,7 @@ export function MenuItem({
 
   const handleDragStart = (e: React.DragEvent) => {
     setIsDragging(true);
-    e.dataTransfer.setData("text/plain", index?.toString() || "");
+    e.dataTransfer.setData("menuType", menuType || "");
     onDragStart?.(index || 0);
   };
 
@@ -49,7 +51,8 @@ export function MenuItem({
     e.preventDefault();
     setIsDragging(false);
     if (index !== undefined) {
-      onDrop?.(index);
+      const sourceMenu = e.dataTransfer.getData("menuType");
+      onDrop?.(index, sourceMenu || undefined);
     }
   };
 

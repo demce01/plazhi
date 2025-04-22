@@ -15,6 +15,15 @@ interface ConfigMenuItem {
   label: string;
 }
 
+// Add these to the window object for cross-menu communication
+declare global {
+  interface Window {
+    __draggedConfigItem: any;
+    __draggedConfigIndex: number | null;
+    __removeFromConfigMenu?: (index: number) => void;
+  }
+}
+
 export function ConfigurationMenu({ role }: ConfigurationMenuProps) {
   const { toast } = useToast();
   const initialMenuItems: ConfigMenuItem[] = [
@@ -33,34 +42,54 @@ export function ConfigurationMenu({ role }: ConfigurationMenuProps) {
   const [menuItems, setMenuItems] = useState<ConfigMenuItem[]>(initialMenuItems);
   const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null);
 
+  // Expose removeItem function to window for cross-menu communication
+  window.__removeFromConfigMenu = (index: number) => {
+    setMenuItems(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleDragStart = (index: number) => {
     setDraggedItemIndex(index);
+    // Store the dragged item for cross-menu transfer
+    window.__draggedConfigItem = menuItems[index];
+    window.__draggedConfigIndex = index;
   };
 
   const handleDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
   };
 
-  const handleDrop = (targetIndex: number) => {
-    if (draggedItemIndex === null) return;
+  const handleDrop = (targetIndex: number, sourceMenu?: string) => {
+    if (draggedItemIndex === null && !sourceMenu) return;
     
-    // Make a copy of the current menu items
-    const items = [...menuItems];
+    if (sourceMenu === 'admin') {
+      // Handle item coming from admin menu
+      const draggedItem = window.__draggedConfigItem;
+      if (draggedItem) {
+        const items = [...menuItems];
+        items.splice(targetIndex, 0, draggedItem);
+        setMenuItems(items);
+        
+        toast({
+          title: "Menu Item Moved",
+          description: "The item has been moved to Configuration Menu.",
+        });
+      }
+    } else {
+      // Handle internal reordering
+      const items = [...menuItems];
+      const [draggedItem] = items.splice(draggedItemIndex!, 1);
+      items.splice(targetIndex, 0, draggedItem);
+      setMenuItems(items);
+      
+      toast({
+        title: "Menu Order Updated",
+        description: "The menu items have been reordered.",
+      });
+    }
     
-    // Remove the dragged item from its original position
-    const [draggedItem] = items.splice(draggedItemIndex, 1);
-    
-    // Insert the dragged item at the new position
-    items.splice(targetIndex, 0, draggedItem);
-    
-    // Update the state with the new order
-    setMenuItems(items);
     setDraggedItemIndex(null);
-    
-    toast({
-      title: "Menu Order Updated",
-      description: "The menu items have been reordered.",
-    });
+    window.__draggedConfigItem = null;
+    window.__draggedConfigIndex = null;
   };
 
   return (
@@ -73,6 +102,7 @@ export function ConfigurationMenu({ role }: ConfigurationMenuProps) {
           to={item.to} 
           icon={item.icon}
           index={index}
+          menuType="config"
           onDragStart={handleDragStart}
           onDragOver={handleDragOver}
           onDrop={handleDrop}

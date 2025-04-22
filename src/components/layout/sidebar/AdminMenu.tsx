@@ -53,26 +53,41 @@ export function AdminMenu() {
     e.preventDefault();
   };
 
-  const handleDrop = (targetIndex: number) => {
-    if (draggedItemIndex === null) return;
+  const handleDrop = (targetIndex: number, sourceMenu?: string) => {
+    if (draggedItemIndex === null && !sourceMenu) return;
     
-    // Make a copy of the current menu items
-    const items = [...menuItems];
+    if (sourceMenu === 'config') {
+      // Handle item coming from config menu
+      const draggedItem = window.__draggedConfigItem;
+      if (draggedItem) {
+        const items = [...menuItems];
+        items.splice(targetIndex, 0, draggedItem);
+        setMenuItems(items);
+        
+        // Notify config menu to remove the item
+        window.__removeFromConfigMenu?.(window.__draggedConfigIndex);
+        
+        toast({
+          title: "Menu Item Moved",
+          description: "The item has been moved to Admin Menu.",
+        });
+      }
+    } else {
+      // Handle internal reordering
+      const items = [...menuItems];
+      const [draggedItem] = items.splice(draggedItemIndex!, 1);
+      items.splice(targetIndex, 0, draggedItem);
+      setMenuItems(items);
+      
+      toast({
+        title: "Menu Order Updated",
+        description: "The menu items have been reordered.",
+      });
+    }
     
-    // Remove the dragged item from its original position
-    const [draggedItem] = items.splice(draggedItemIndex, 1);
-    
-    // Insert the dragged item at the new position
-    items.splice(targetIndex, 0, draggedItem);
-    
-    // Update the state with the new order
-    setMenuItems(items);
     setDraggedItemIndex(null);
-    
-    toast({
-      title: "Menu Order Updated",
-      description: "The menu items have been reordered.",
-    });
+    window.__draggedConfigItem = null;
+    window.__draggedConfigIndex = null;
   };
 
   return (
@@ -84,6 +99,7 @@ export function AdminMenu() {
           icon={item.icon}
           className={item.className}
           index={index}
+          menuType="admin"
           onDragStart={handleDragStart}
           onDragOver={handleDragOver}
           onDrop={handleDrop}
