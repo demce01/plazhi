@@ -15,12 +15,10 @@ interface PaymentStepProps {
   selectedSets: Set[];
   isLoggedIn: boolean;
   isProcessing: boolean;
-  showGuestForm: boolean;
   onRemoveSet: (setId: string) => void;
   onBack: () => void;
   onSubmit: () => void;
   onGuestSubmit: (data: { name: string; phone: string; email?: string }) => void;
-  onCancelGuest: () => void;
 }
 
 export function PaymentStep({
@@ -29,14 +27,10 @@ export function PaymentStep({
   selectedDate,
   selectedZone,
   selectedSets,
-  isLoggedIn,
   isProcessing,
-  showGuestForm,
   onRemoveSet,
   onBack,
-  onSubmit,
-  onGuestSubmit,
-  onCancelGuest
+  onGuestSubmit
 }: PaymentStepProps) {
   return (
     <div className={cn("grid grid-cols-1 md:grid-cols-2 gap-8", !isActive && "hidden")}>
@@ -101,73 +95,18 @@ export function PaymentStep({
       </div>
       
       <div>
-        {isLoggedIn ? (
-          <div className="space-y-6">
-            <h3 className="font-semibold text-lg">Payment Information</h3>
-            <p className="text-gray-600">
-              Your reservation will be processed immediately. You will receive a confirmation email shortly.
-            </p>
-            
-            <div className="flex items-center space-x-2 my-4">
-              <Checkbox id="terms" />
-              <label
-                htmlFor="terms"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                I agree to the terms and conditions
-              </label>
-            </div>
-            
-            <div className="flex justify-end space-x-4">
-              <Button variant="outline" onClick={onBack}>
-                Back
-              </Button>
-              <Button 
-                onClick={onSubmit}
-                disabled={isProcessing || selectedSets.length === 0}
-              >
-                {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Complete Reservation
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {!showGuestForm ? (
-              <>
-                <h3 className="font-semibold text-lg">Reservation Options</h3>
-                <div className="space-y-4">
-                  <Button 
-                    onClick={() => window.location.href = "/auth/login"}
-                    variant="outline" 
-                    className="w-full"
-                  >
-                    Sign in to make a reservation
-                  </Button>
-                  <Button 
-                    onClick={() => onGuestSubmit({ name: "", phone: "", email: "" })} 
-                    className="w-full"
-                  >
-                    Continue as Guest
-                  </Button>
-                </div>
-              </>
-            ) : (
-              <>
-                <h3 className="font-semibold text-lg">Continue as Guest</h3>
-                <p className="text-gray-600 mb-4">
-                  Please provide your contact information to continue with the reservation.
-                </p>
-                
-                <GuestReservationForm 
-                  onSubmit={onGuestSubmit}
-                  onCancel={onCancelGuest}
-                  isSubmitting={isProcessing}
-                />
-              </>
-            )}
-          </div>
-        )}
+        <div className="space-y-6">
+          <h3 className="font-semibold text-lg">Contact Information</h3>
+          <p className="text-gray-600">
+            Please provide your contact details to complete the reservation.
+          </p>
+          
+          <GuestReservationForm 
+            onSubmit={onGuestSubmit}
+            onCancel={onBack}
+            isSubmitting={isProcessing}
+          />
+        </div>
       </div>
     </div>
   );
