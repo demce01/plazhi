@@ -11,7 +11,6 @@ import {
   PlusCircle,
   Shield,
   Users,
-  DollarSign,
   FileText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -99,6 +98,14 @@ export function DashboardSidebar() {
                 className="ml-6 text-sm"
               >
                 Content Management
+              </MenuItem>
+              
+              <MenuItem 
+                to="/admin/reservations" 
+                icon={CalendarDays}
+                className="ml-6 text-sm"
+              >
+                Reservation Management
               </MenuItem>
             </>
           )}

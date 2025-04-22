@@ -1,4 +1,3 @@
-
 import { lazy, Suspense } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -27,6 +26,7 @@ const ReservationSuccess = lazy(() => import("@/pages/beaches/ReservationSuccess
 const UserReservations = lazy(() => import("@/pages/user/UserReservations"));
 const UserProfile = lazy(() => import("@/pages/user/UserProfile"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
+const ReservationManagementTab = lazy(() => import("@/pages/admin/ReservationManagementTab"));
 
 // Create a client
 const queryClient = new QueryClient();
@@ -170,6 +170,16 @@ const router = createBrowserRouter([
           <Suspense fallback={<LoadingScreen />}>
             <RoleProtectedRoute roles={["admin"]}>
               <ContentManagement />
+            </RoleProtectedRoute>
+          </Suspense>
+        ),
+      },
+      {
+        path: "reservations",
+        element: (
+          <Suspense fallback={<LoadingScreen />}>
+            <RoleProtectedRoute roles={["admin"]}>
+              <ReservationManagementTab />
             </RoleProtectedRoute>
           </Suspense>
         ),
