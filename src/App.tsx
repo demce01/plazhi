@@ -1,3 +1,4 @@
+
 import { lazy, Suspense } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -8,7 +9,17 @@ import { RoleProtectedRoute } from "@/components/auth/RoleProtectedRoute";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { AuthLayout } from "@/components/layout/AuthLayout";
-import { LoadingScreen } from "@/components/LoadingScreen";
+import { Loader2 } from "lucide-react";
+
+// Create a simple loading component to replace LoadingScreen
+const LoadingSpinner = () => (
+  <div className="flex items-center justify-center h-screen w-full bg-background">
+    <div className="flex flex-col items-center">
+      <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      <h2 className="mt-4 text-xl font-semibold">Loading...</h2>
+    </div>
+  </div>
+);
 
 // Lazy-loaded pages
 const Index = lazy(() => import("@/pages/Index"));
@@ -39,7 +50,7 @@ const router = createBrowserRouter([
       {
         index: true,
         element: (
-          <Suspense fallback={<LoadingScreen />}>
+          <Suspense fallback={<LoadingSpinner />}>
             <Index />
           </Suspense>
         ),
@@ -47,7 +58,7 @@ const router = createBrowserRouter([
       {
         path: "dashboard",
         element: (
-          <Suspense fallback={<LoadingScreen />}>
+          <Suspense fallback={<LoadingSpinner />}>
             <ProtectedRoute>
               <Dashboard />
             </ProtectedRoute>
@@ -57,7 +68,7 @@ const router = createBrowserRouter([
       {
         path: "beaches",
         element: (
-          <Suspense fallback={<LoadingScreen />}>
+          <Suspense fallback={<LoadingSpinner />}>
             <BeachList />
           </Suspense>
         ),
@@ -65,7 +76,7 @@ const router = createBrowserRouter([
       {
         path: "beaches/:beachId/reserve",
         element: (
-          <Suspense fallback={<LoadingScreen />}>
+          <Suspense fallback={<LoadingSpinner />}>
             <BeachReservation />
           </Suspense>
         ),
@@ -73,7 +84,7 @@ const router = createBrowserRouter([
       {
         path: "reservation-success",
         element: (
-          <Suspense fallback={<LoadingScreen />}>
+          <Suspense fallback={<LoadingSpinner />}>
             <ReservationSuccess />
           </Suspense>
         ),
@@ -85,7 +96,7 @@ const router = createBrowserRouter([
           {
             path: "reservations",
             element: (
-              <Suspense fallback={<LoadingScreen />}>
+              <Suspense fallback={<LoadingSpinner />}>
                 <UserReservations />
               </Suspense>
             ),
@@ -93,7 +104,7 @@ const router = createBrowserRouter([
           {
             path: "profile",
             element: (
-              <Suspense fallback={<LoadingScreen />}>
+              <Suspense fallback={<LoadingSpinner />}>
                 <UserProfile />
               </Suspense>
             ),
@@ -109,7 +120,7 @@ const router = createBrowserRouter([
       {
         path: "login",
         element: (
-          <Suspense fallback={<LoadingScreen />}>
+          <Suspense fallback={<LoadingSpinner />}>
             <Login />
           </Suspense>
         ),
@@ -117,7 +128,7 @@ const router = createBrowserRouter([
       {
         path: "register",
         element: (
-          <Suspense fallback={<LoadingScreen />}>
+          <Suspense fallback={<LoadingSpinner />}>
             <Register />
           </Suspense>
         ),
@@ -125,7 +136,7 @@ const router = createBrowserRouter([
       {
         path: "forgot-password",
         element: (
-          <Suspense fallback={<LoadingScreen />}>
+          <Suspense fallback={<LoadingSpinner />}>
             <ForgotPassword />
           </Suspense>
         ),
@@ -133,7 +144,7 @@ const router = createBrowserRouter([
       {
         path: "reset-password",
         element: (
-          <Suspense fallback={<LoadingScreen />}>
+          <Suspense fallback={<LoadingSpinner />}>
             <ResetPassword />
           </Suspense>
         ),
@@ -147,7 +158,7 @@ const router = createBrowserRouter([
       {
         index: true,
         element: (
-          <Suspense fallback={<LoadingScreen />}>
+          <Suspense fallback={<LoadingSpinner />}>
             <RoleProtectedRoute roles={["admin"]}>
               <AdminDashboard />
             </RoleProtectedRoute>
@@ -157,7 +168,7 @@ const router = createBrowserRouter([
       {
         path: "beaches",
         element: (
-          <Suspense fallback={<LoadingScreen />}>
+          <Suspense fallback={<LoadingSpinner />}>
             <RoleProtectedRoute roles={["admin"]}>
               <BeachesManagement />
             </RoleProtectedRoute>
@@ -167,7 +178,7 @@ const router = createBrowserRouter([
       {
         path: "content",
         element: (
-          <Suspense fallback={<LoadingScreen />}>
+          <Suspense fallback={<LoadingSpinner />}>
             <RoleProtectedRoute roles={["admin"]}>
               <ContentManagement />
             </RoleProtectedRoute>
@@ -177,7 +188,7 @@ const router = createBrowserRouter([
       {
         path: "reservations",
         element: (
-          <Suspense fallback={<LoadingScreen />}>
+          <Suspense fallback={<LoadingSpinner />}>
             <RoleProtectedRoute roles={["admin"]}>
               <ReservationManagementTab />
             </RoleProtectedRoute>
@@ -189,7 +200,7 @@ const router = createBrowserRouter([
   {
     path: "*",
     element: (
-      <Suspense fallback={<LoadingScreen />}>
+      <Suspense fallback={<LoadingSpinner />}>
         <NotFound />
       </Suspense>
     ),
