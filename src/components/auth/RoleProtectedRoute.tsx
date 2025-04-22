@@ -3,7 +3,7 @@ import { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { UserRole } from "@/types";
-import { LoadingScreen } from "@/components/LoadingScreen";
+import { Loader2 } from "lucide-react";
 
 interface RoleProtectedRouteProps {
   children: ReactNode;
@@ -15,9 +15,16 @@ export function RoleProtectedRoute({ children, roles }: RoleProtectedRouteProps)
   const { user, role, loading } = userSession;
   const location = useLocation();
 
-  // Show loading screen while checking authentication
+  // Show loading spinner while checking authentication
   if (loading) {
-    return <LoadingScreen />;
+    return (
+      <div className="flex items-center justify-center h-screen w-full bg-background">
+        <div className="flex flex-col items-center">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          <h2 className="mt-4 text-xl font-semibold">Loading...</h2>
+        </div>
+      </div>
+    );
   }
 
   // If not authenticated, redirect to login

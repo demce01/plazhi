@@ -2,9 +2,9 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
-import { LoadingScreen } from "@/components/LoadingScreen";
 import DashboardOverview from "./Overview";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { Loader2 } from "lucide-react";
 
 export default function Dashboard() {
   const { userSession } = useAuth();
@@ -24,7 +24,14 @@ export default function Dashboard() {
   }, [user, role, loading, navigate]);
 
   if (loading) {
-    return <LoadingScreen />;
+    return (
+      <div className="flex items-center justify-center h-screen w-full bg-background">
+        <div className="flex flex-col items-center">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          <h2 className="mt-4 text-xl font-semibold">Loading...</h2>
+        </div>
+      </div>
+    );
   }
   
   // This is for admin users
@@ -36,5 +43,12 @@ export default function Dashboard() {
     );
   }
   
-  return <LoadingScreen />;
+  return (
+    <div className="flex items-center justify-center h-screen w-full bg-background">
+      <div className="flex flex-col items-center">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <h2 className="mt-4 text-xl font-semibold">Loading...</h2>
+      </div>
+    </div>
+  );
 }
