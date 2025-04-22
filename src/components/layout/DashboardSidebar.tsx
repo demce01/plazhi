@@ -1,4 +1,3 @@
-
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { cn } from "@/lib/utils";
@@ -49,8 +48,6 @@ export function DashboardSidebar() {
     navigate("/auth/login");
   };
 
-  console.log("Current user role:", role);
-
   return (
     <div className="flex h-full flex-col border-r bg-background">
       <div className="p-6">
@@ -61,17 +58,17 @@ export function DashboardSidebar() {
         <MenuItem to="/dashboard" icon={LayoutDashboard}>
           Dashboard
         </MenuItem>
-        
-        <MenuItem to="/user/reservations" icon={CalendarDays}>
-          Reservations
-        </MenuItem>
 
-        {/* Settings section with configuration options */}
+        {/* Configuration section with configuration options */}
         <div className="mt-6 pt-6 border-t">
           <h3 className="px-3 text-sm font-medium text-gray-500 mb-2">Configuration</h3>
           
           <MenuItem to="/settings" icon={Settings}>
             Settings
+          </MenuItem>
+
+          <MenuItem to="/user/reservations" icon={CalendarDays}>
+            My Reservations
           </MenuItem>
 
           {role === 'admin' && (
