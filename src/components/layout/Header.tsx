@@ -1,3 +1,4 @@
+
 import { useAuth } from "@/contexts/auth";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -29,7 +30,7 @@ export function Header() {
       
       if (role === 'admin') {
         links.push(
-          <Link key="admin" to="/admin" className="text-gray-500 hover:text-gray-900 font-medium">
+          <Link key="dashboard" to="/dashboard" className="text-gray-500 hover:text-gray-900 font-medium">
             Admin Dashboard
           </Link>
         );
