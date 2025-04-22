@@ -9,11 +9,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink } from "@/components/ui/pagination";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
 
 export default function AdminDashboard() {
   const { userSession } = useAuth();
   const { role } = userSession;
   const navigate = useNavigate();
+  const [setsCounts, setSetsCounts] = useState<{[key: string]: number}>({});
   
   const { 
     loading, 
@@ -24,16 +27,44 @@ export default function AdminDashboard() {
     handleBeachCreated
   } = useAdminDashboard();
   
+  // Load sets counts for each beach
+  useEffect(() => {
+    const fetchSetsCounts = async () => {
+      if (beaches.length === 0) return;
+      
+      const counts: {[key: string]: number} = {};
+      
+      for (const beach of beaches) {
+        // Fetch count of sets for each beach
+        const { count, error } = await supabase
+          .from('sets')
+          .select('*', { count: 'exact', head: true })
+          .eq('beach_id', beach.id);
+          
+        if (!error && count !== null) {
+          counts[beach.id] = count;
+        }
+      }
+      
+      setSetsCounts(counts);
+    };
+    
+    fetchSetsCounts();
+  }, [beaches]);
+  
   // Redirect non-admin users
   if (role !== 'admin') {
     navigate('/');
     return null;
   }
 
+  // Get total sets count from our loaded counts
+  const totalSets = Object.values(setsCounts).reduce((sum, count) => sum + count, 0);
+
   // Quick stats for dashboard
   const stats = [
     { title: "Total Beaches", value: beaches.length, icon: <Umbrella className="h-4 w-4 text-primary" /> },
-    { title: "Active Sets", value: beaches.reduce((acc, beach) => acc + (beach.sets_count || 0), 0), icon: <Umbrella className="h-4 w-4 text-green-500" /> },
+    { title: "Active Sets", value: totalSets, icon: <Umbrella className="h-4 w-4 text-green-500" /> },
     { title: "Users", value: "View", link: () => setActiveTab("users"), icon: <Users className="h-4 w-4 text-blue-500" /> },
     { title: "Settings", value: "System", link: () => navigate("/settings"), icon: <Settings className="h-4 w-4 text-orange-500" /> },
   ];
