@@ -1,14 +1,16 @@
+
 import React from 'react';
 import { Set, Zone } from '@/types';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button'; // Use Button for sets
+import { Button } from '@/components/ui/button';
 
-interface VisualSetSelectionGridProps {
-  zones: Zone[]; // Might be used for sectioning later
-  sets: Set[]; // ALL sets for the beach, including status
+export interface VisualSetSelectionGridProps {
+  zones: Zone[];
+  sets: Set[];
   selectedSets: Set[];
-  onSelectSet: (set: Set) => void;
-  // Add onZoneSelect if needed for zone tabs/filtering
+  selectedZone: Zone | null;
+  onZoneSelect: (zone: Zone | null) => void;
+  onSetToggle: (set: Set) => void;
 }
 
 // Helper to group sets by row
@@ -29,7 +31,9 @@ export function VisualSetSelectionGrid({
   zones,
   sets,
   selectedSets,
-  onSelectSet,
+  selectedZone,
+  onZoneSelect,
+  onSetToggle,
 }: VisualSetSelectionGridProps) {
   const setsByRow = groupSetsByRow(sets);
   const sortedRows = Object.keys(setsByRow).map(Number).sort((a, b) => a - b);
@@ -37,12 +41,28 @@ export function VisualSetSelectionGrid({
   const getSetVariant = (set: Set): 'default' | 'secondary' | 'outline' | 'destructive' | 'ghost' => {
       const isSelected = selectedSets.some(s => s.id === set.id);
       if (isSelected) return 'default'; // Primary color for selected
-      if (set.status === 'reserved') return 'secondary'; // Greyed out for reserved
+      if ((set as any).status === 'reserved') return 'secondary'; // Greyed out for reserved
       return 'outline'; // Outline for available
   };
 
   return (
-    <div className="space-y-6 p-4 border rounded-md bg-muted/20"> {/* Added padding/border */}
+    <div className="space-y-6 p-4 border rounded-md bg-muted/20">
+      {/* Zone selection if there are multiple zones */}
+      {zones.length > 1 && (
+        <div className="flex flex-wrap gap-2 mb-4">
+          {zones.map((zone) => (
+            <Button
+              key={zone.id}
+              variant={selectedZone?.id === zone.id ? "default" : "outline"}
+              size="sm"
+              onClick={() => onZoneSelect(selectedZone?.id === zone.id ? null : zone)}
+            >
+              {zone.name}
+            </Button>
+          ))}
+        </div>
+      )}
+
       <div className="text-center p-2 bg-blue-100 text-blue-800 rounded-md font-medium">Ocean</div>
       
       {sortedRows.map((rowNumber) => (
@@ -51,14 +71,14 @@ export function VisualSetSelectionGrid({
           <div className="flex flex-wrap gap-2">
             {setsByRow[rowNumber].map((set) => {
                const variant = getSetVariant(set);
-               const isDisabled = set.status === 'reserved';
+               const isDisabled = (set as any).status === 'reserved';
               return (
                 <Button
                   key={set.id}
                   variant={variant}
                   size="icon"
-                  className="rounded-full w-8 h-8 text-xs" // Smaller, rounded buttons
-                  onClick={() => onSelectSet(set)}
+                  className="rounded-full w-8 h-8 text-xs"
+                  onClick={() => onSetToggle(set)}
                   disabled={isDisabled}
                 >
                   {/* Display position number inside */}
@@ -73,4 +93,4 @@ export function VisualSetSelectionGrid({
       <div className="text-center p-2 bg-yellow-100 text-yellow-800 rounded-md font-medium mt-4">Beach Entrance</div>
     </div>
   );
-} 
+}
