@@ -15,13 +15,11 @@ export function useReservation(
     selectedSets,
     currentStep,
     isProcessing,
-    showGuestForm,
     handleSelectSet,
     handleRemoveSet,
     handleZoneSelect,
     goToStep,
-    setIsProcessing,
-    setShowGuestForm
+    setIsProcessing
   } = useReservationState();
   
   const {
@@ -40,7 +38,6 @@ export function useReservation(
     selectedSets,
     currentStep,
     isProcessing,
-    showGuestForm,
     handleSelectSet,
     handleRemoveSet,
     handleZoneSelect,
@@ -48,7 +45,6 @@ export function useReservation(
     getSetsByRow,
     handleReservation,
     handleGuestReservation,
-    goToStep,
-    setShowGuestForm
+    goToStep
   };
 }

@@ -9,7 +9,6 @@ export function useReservationState() {
   const [selectedZone, setSelectedZone] = useState<Zone | null>(null);
   const [selectedSets, setSelectedSets] = useState<Set[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showGuestForm, setShowGuestForm] = useState(false);
   const [currentStep, setCurrentStep] = useState<"date" | "location" | "payment">("date");
 
   const handleSelectSet = (set: Set) => {
@@ -60,12 +59,10 @@ export function useReservationState() {
     selectedSets,
     currentStep,
     isProcessing,
-    showGuestForm,
     handleSelectSet,
     handleRemoveSet,
     handleZoneSelect,
     goToStep,
-    setIsProcessing,
-    setShowGuestForm
+    setIsProcessing
   };
 }

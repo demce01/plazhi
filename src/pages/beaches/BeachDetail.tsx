@@ -29,7 +29,6 @@ export default function BeachDetail() {
     selectedSets,
     currentStep,
     isProcessing,
-    showGuestForm,
     handleSelectSet,
     handleRemoveSet,
     handleZoneSelect,
@@ -38,7 +37,6 @@ export default function BeachDetail() {
     handleReservation,
     handleGuestReservation,
     goToStep,
-    setShowGuestForm
   } = useReservation(beach, selectedDate, userSession);
 
   if (loading) {
@@ -116,15 +114,10 @@ export default function BeachDetail() {
             selectedSets={selectedSets}
             isLoggedIn={!!userSession.user}
             isProcessing={isProcessing}
-            showGuestForm={showGuestForm}
             onRemoveSet={handleRemoveSet}
             onBack={() => goToStep("location")}
             onSubmit={handleReservation}
             onGuestSubmit={handleGuestReservation}
-            onCancelGuest={() => {
-              setShowGuestForm(false);
-              goToStep("location");
-            }}
           />
         </div>
       </div>
