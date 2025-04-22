@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,6 +16,7 @@ import FindReservation from "./pages/FindReservation";
 import BeachesList from "./pages/beaches/BeachesList";
 import BeachDetail from "./pages/beaches/BeachDetail";
 import AdminDashboard from "./pages/admin/Dashboard";
+import BeachesManagement from "./pages/admin/BeachesManagement";
 import DashboardOverview from "./pages/dashboard/Overview";
 import ReservationDetail from "./pages/reservations/ReservationDetail";
 import ReservationsRouter from "./pages/reservations/ReservationsRouter";
@@ -61,6 +63,11 @@ const App = () => (
               <Route path="/settings/admin" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <AdminDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/settings/admin/beaches" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <BeachesManagement />
                 </ProtectedRoute>
               } />
               <Route path="/settings/admin/reservations/:id" element={
