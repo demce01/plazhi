@@ -54,7 +54,6 @@ export function useReservationSubmit(
       if (alreadyReserved) {
         toast({ title: "Set Unavailable", description: `Sorry, one or more selected sets (ID: ${alreadyReserved.id.substring(0,8)}...) were just booked. Please select different sets.`, variant: "destructive" });
         setIsProcessing(false);
-        // TODO: Optionally refresh available sets for the user
         return false;
       }
       
@@ -165,7 +164,6 @@ export function useReservationSubmit(
       if (alreadyReserved) {
         toast({ title: "Set Unavailable", description: `Sorry, one or more selected sets (ID: ${alreadyReserved.id.substring(0,8)}...) were just booked. Please select different sets.`, variant: "destructive" });
         setIsProcessing(false);
-        // TODO: Optionally refresh available sets for the user
         return false;
       }
       
