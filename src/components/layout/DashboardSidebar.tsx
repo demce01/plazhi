@@ -49,6 +49,8 @@ export function DashboardSidebar() {
     navigate("/auth/login");
   };
 
+  console.log("Current user role:", role); // Add logging to verify role
+
   return (
     <div className="flex h-full flex-col border-r bg-background">
       <div className="p-6">
@@ -83,11 +85,11 @@ export function DashboardSidebar() {
               </MenuItem>
               
               <MenuItem 
-                to="/settings/admin/users" 
-                icon={Users}
+                to="/settings/admin" 
+                icon={Shield}
                 className="ml-6 text-sm"
               >
-                User Management
+                Admin Dashboard
               </MenuItem>
             </>
           )}

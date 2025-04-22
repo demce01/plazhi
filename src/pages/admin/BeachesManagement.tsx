@@ -6,7 +6,7 @@ import { Beach } from "@/types";
 import { BeachManagement } from "@/components/beaches/BeachManagement";
 import { BeachForm } from "@/components/beaches/BeachForm";
 import { Button } from "@/components/ui/button";
-import { Plus, Grid3X3 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -43,6 +43,8 @@ export default function BeachesManagement() {
       description: `${beach.name} has been successfully created.`,
     });
   }, [refreshBeaches, toast]);
+
+  console.log("BeachesManagement rendering, beaches:", beaches); // Debug log
 
   return (
     <div className="space-y-6">
