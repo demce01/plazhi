@@ -1,3 +1,4 @@
+
 import React from "react";
 import {
   Table,
@@ -149,7 +150,7 @@ function AdminReservationActions({
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>Actions</DropdownMenuLabel>
         <DropdownMenuItem asChild>
-           <Link to={`/admin/reservations/${reservation.id}`}> 
+           <Link to={`/settings/admin/reservations/${reservation.id}`}> 
             <Eye className="mr-2 h-4 w-4" />
             View Details
           </Link>
