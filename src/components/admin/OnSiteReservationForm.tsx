@@ -1,199 +1,398 @@
+
 import React, { useState } from 'react';
-import { useOnSiteReservation } from '@/hooks/admin/useOnSiteReservation';
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar as CalendarIcon, Loader2, User, Phone, Mail } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
-import { cn } from "@/lib/utils";
-import { Beach, Set, Zone } from '@/types';
+import { Loader2 } from 'lucide-react';
+
+import { useAdminBeachList } from '@/hooks/admin/useAdminBeachList';
+import { useVisualSetSelection } from '@/hooks/admin/useVisualSetSelection';
+
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Card, CardContent } from '@/components/ui/card';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+
 import { VisualSetSelectionGrid } from './VisualSetSelectionGrid';
 
-// TODO: Import and use the SetSelection component (needs creation or adaptation)
-// Assuming a SetSelection component exists similar to the user flow
-// import { SetSelection } from '@/components/reservations/SetSelection';
+// Form schema
+const formSchema = z.object({
+  beachId: z.string({ required_error: "Please select a beach" }),
+  guestName: z.string().min(2, { message: "Name must be at least 2 characters" }),
+  guestPhone: z.string().min(5, { message: "Phone number is required" }),
+  guestEmail: z.string().email({ message: "Invalid email address" }).optional().or(z.literal('')),
+  date: z.date({ required_error: "Please select a date" }),
+});
 
-interface GuestDataForm {
-  name: string;
-  phone: string;
-  email?: string;
-}
+type FormValues = z.infer<typeof formSchema>;
 
 export function OnSiteReservationForm() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { beaches, isLoading: beachesLoading } = useAdminBeachList();
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  
   const {
-    isLoading,
-    isSubmitting,
-    beaches,
-    selectedBeach,
-    setSelectedBeach,
-    selectedDate,
-    setSelectedDate,
-    zones,       // Assuming SetSelection uses zones
-    sets,        // Pass sets to SetSelection
-    selectedZone, // Assuming SetSelection uses selectedZone
-    handleZoneSelect, // Pass to SetSelection
+    selectedBeachId,
+    selectedZone,
     selectedSets,
-    handleSelectSet, // Pass to SetSelection
+    availableZones,
+    availableSets,
+    isLoading: setsLoading,
+    setSelectedBeachId,
+    setSelectedZone,
+    handleSelectSet,
     handleRemoveSet,
-    setGuestData,
-    submitOnSiteReservation,
-  } = useOnSiteReservation();
+    fetchZonesAndSets,
+  } = useVisualSetSelection();
 
-  const [localGuestData, setLocalGuestData] = useState<GuestDataForm>({ name: '', phone: '', email: '' });
+  // Initialize form
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      beachId: '',
+      guestName: '',
+      guestPhone: '',
+      guestEmail: '',
+      date: new Date(),
+    },
+  });
 
-  const handleBeachChange = (beachId: string) => {
-    const beach = beaches.find(b => b.id === beachId) || null;
-    setSelectedBeach(beach);
-  };
+  // Watch the beachId field for changes
+  const watchBeachId = form.watch('beachId');
+  const watchDate = form.watch('date');
 
-  const handleGuestDataChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setLocalGuestData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleGuestSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Basic validation
-    if (!localGuestData.name || !localGuestData.phone) {
-        alert("Please enter guest name and phone number."); // Replace with proper toast/validation message
-        return;
+  // Update the selected beach ID when the form beach field changes
+  React.useEffect(() => {
+    if (watchBeachId && watchBeachId !== selectedBeachId) {
+      setSelectedBeachId(watchBeachId);
+      // Reset selected zone and sets when beach changes
+      setSelectedZone(null);
     }
-    setGuestData(localGuestData);
-    // Trigger final submission if guest data is now set
-    submitOnSiteReservation(); 
-  };
+  }, [watchBeachId, selectedBeachId, setSelectedBeachId, setSelectedZone]);
 
-  // Calculate total price for summary
-  const totalPrice = selectedSets.reduce((sum, set) => sum + Number(set.price || 0), 0);
+  // Update sets when date changes
+  React.useEffect(() => {
+    if (watchDate && selectedBeachId) {
+      fetchZonesAndSets(selectedBeachId, watchDate);
+    }
+  }, [watchDate, selectedBeachId, fetchZonesAndSets]);
+
+  // Update selected date when the form date field changes
+  React.useEffect(() => {
+    if (watchDate) {
+      setSelectedDate(watchDate);
+    }
+  }, [watchDate]);
+
+  // Set form date value when selected date changes
+  React.useEffect(() => {
+    if (selectedDate) {
+      form.setValue('date', selectedDate);
+    }
+  }, [selectedDate, form]);
+
+  const onSubmit = async (values: FormValues) => {
+    if (selectedSets.length === 0) {
+      toast({
+        title: "No sets selected",
+        description: "Please select at least one beach set to reserve",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // Calculate total amount
+      const totalAmount = selectedSets.reduce(
+        (sum, set) => sum + Number(set.price || 0), 
+        0
+      );
+
+      // Create the reservation
+      const { data: reservation, error: reservationError } = await supabase
+        .from("reservations")
+        .insert({
+          beach_id: values.beachId,
+          guest_name: values.guestName,
+          guest_phone: values.guestPhone,
+          guest_email: values.guestEmail || null,
+          reservation_date: format(values.date, "yyyy-MM-dd"),
+          payment_amount: totalAmount,
+          status: "confirmed",
+          payment_status: "completed",
+        })
+        .select()
+        .single();
+
+      if (reservationError) {
+        throw reservationError;
+      }
+
+      // Create reservation_sets entries
+      const reservationSets = selectedSets.map(set => ({
+        reservation_id: reservation.id,
+        set_id: set.id,
+        price: set.price,
+      }));
+
+      const { error: setsError } = await supabase
+        .from("reservation_sets")
+        .insert(reservationSets);
+
+      if (setsError) {
+        throw setsError;
+      }
+
+      toast({
+        title: "Reservation created",
+        description: `Reservation for ${values.guestName} has been created successfully.`,
+      });
+
+      // Redirect to the reservation details page
+      navigate(`/admin/reservations/${reservation.id}`);
+    } catch (error: any) {
+      console.error("Error creating reservation:", error);
+      toast({
+        title: "Error creating reservation",
+        description: error.message || "An error occurred while creating the reservation.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
-    <form onSubmit={handleGuestSubmit} className="space-y-8">
-      {/* Step 1: Beach Selection */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Step 1: Select Beach</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Label htmlFor="beach-select">Beach</Label>
-          <Select 
-            value={selectedBeach?.id || ''} 
-            onValueChange={handleBeachChange}
-            disabled={isLoading || beaches.length === 0}
-          >
-            <SelectTrigger id="beach-select">
-              <SelectValue placeholder="Select a beach..." />
-            </SelectTrigger>
-            <SelectContent>
-              {beaches.map((beach) => (
-                <SelectItem key={beach.id} value={beach.id}>
-                  {beach.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {isLoading && <p className="text-sm text-muted-foreground mt-2">Loading beaches...</p>}
-        </CardContent>
-      </Card>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {/* Beach selection */}
+        <FormField
+          control={form.control}
+          name="beachId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Beach</FormLabel>
+              <Select
+                disabled={beachesLoading || isSubmitting}
+                onValueChange={field.onChange}
+                value={field.value}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a beach" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {beaches?.map((beach) => (
+                    <SelectItem key={beach.id} value={beach.id}>
+                      {beach.name} {beach.location ? `(${beach.location})` : ''}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormDescription>
+                Select the beach for this reservation.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-      {/* Step 2: Date Selection */}
-      {selectedBeach && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Step 2: Select Date</CardTitle>
-          </CardHeader>
-          <CardContent>
-             <Popover>
+        {/* Date selection */}
+        <FormField
+          control={form.control}
+          name="date"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel>Date</FormLabel>
+              <Popover>
                 <PopoverTrigger asChild>
+                  <FormControl>
                     <Button
-                        variant={"outline"}
-                        className={cn(
-                            "w-[280px] justify-start text-left font-normal",
-                            !selectedDate && "text-muted-foreground"
-                        )}
+                      variant={"outline"}
+                      className={`w-full pl-3 text-left font-normal ${
+                        !field.value && "text-muted-foreground"
+                      }`}
+                      disabled={isSubmitting}
                     >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+                      {field.value ? (
+                        format(field.value, "PPP")
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
                     </Button>
+                  </FormControl>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                    <Calendar
-                        mode="single"
-                        selected={selectedDate}
-                        onSelect={(date) => date && setSelectedDate(date)}
-                        initialFocus
-                        // Optional: Add disabled dates logic if needed
-                    />
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={field.value}
+                    onSelect={field.onChange}
+                    disabled={(date) => date < new Date()}
+                    initialFocus
+                  />
                 </PopoverContent>
-            </Popover>
-          </CardContent>
-        </Card>
-      )}
+              </Popover>
+              <FormDescription>
+                Select the reservation date.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-      {/* Step 3: Set Selection (Placeholder) */}
-      {selectedBeach && selectedDate && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Step 3: Select Sets</CardTitle>
-             <CardDescription>Select available zones and sets for {format(selectedDate, "PPP")}.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoading && <p>Loading sets...</p>}
-            {/* Replace list selection with visual grid */}
-            {!isLoading && sets.length > 0 && (
-              <VisualSetSelectionGrid 
-                zones={zones} 
-                sets={sets} 
-                selectedSets={selectedSets} 
-                onSelectSet={handleSelectSet} 
-              />
+        {/* Guest information */}
+        <div className="grid gap-4 md:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="guestName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Guest Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="John Doe" {...field} disabled={isSubmitting} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
-            {!isLoading && sets.length === 0 && <p className="text-center text-muted-foreground p-4">No sets found for this beach/date.</p>}
-          </CardContent>
-        </Card>
-      )}
+          />
 
-      {/* Step 4: Guest Details & Summary */}
-      {selectedSets.length > 0 && (
-         <Card>
-          <CardHeader>
-            <CardTitle>Step 4: Guest Information & Confirm</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-              {/* Summary */}
-               <div className="border rounded-lg p-4 bg-muted/50 space-y-2">
-                 <h4 className="font-semibold mb-2">Summary</h4>
-                 <div className="flex justify-between text-sm"><span className="text-muted-foreground">Beach:</span><span>{selectedBeach?.name}</span></div>
-                 <div className="flex justify-between text-sm"><span className="text-muted-foreground">Date:</span><span>{format(selectedDate, "PPP")}</span></div>
-                 <div className="flex justify-between text-sm"><span className="text-muted-foreground">Sets:</span><span>{selectedSets.length}</span></div>
-                 <div className="flex justify-between font-bold pt-2 border-t"><span >Total Price:</span><span>${totalPrice.toFixed(2)}</span></div>
-               </div>
+          <FormField
+            control={form.control}
+            name="guestPhone"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Phone Number</FormLabel>
+                <FormControl>
+                  <Input placeholder="+1234567890" {...field} disabled={isSubmitting} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
-               {/* Guest Inputs */}
-               <div className="space-y-2">
-                 <Label htmlFor="name"><User className="inline h-4 w-4 mr-1"/>Guest Name</Label>
-                 <Input id="name" name="name" value={localGuestData.name} onChange={handleGuestDataChange} required placeholder="Full Name" />
-               </div>
-               <div className="space-y-2">
-                 <Label htmlFor="phone"><Phone className="inline h-4 w-4 mr-1"/>Guest Phone</Label>
-                 <Input id="phone" name="phone" type="tel" value={localGuestData.phone} onChange={handleGuestDataChange} required placeholder="+1234567890" />
-               </div>
-               <div className="space-y-2">
-                 <Label htmlFor="email"><Mail className="inline h-4 w-4 mr-1"/>Guest Email (Optional)</Label>
-                 <Input id="email" name="email" type="email" value={localGuestData.email || ''} onChange={handleGuestDataChange} placeholder="guest@example.com" />
-               </div>
-          </CardContent>
-          <CardFooter>
-              <Button type="submit" className="w-full" disabled={isSubmitting || selectedSets.length === 0}>
-                 {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
-                 {isSubmitting ? "Creating Reservation..." : "Create On-Site Reservation"}
-              </Button>
-          </CardFooter>
-        </Card>
-      )}
-    </form>
+        <FormField
+          control={form.control}
+          name="guestEmail"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email (Optional)</FormLabel>
+              <FormControl>
+                <Input
+                  type="email"
+                  placeholder="guest@example.com"
+                  {...field}
+                  disabled={isSubmitting}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Sets selection */}
+        {watchBeachId && (
+          <Card>
+            <CardContent className="pt-6">
+              <div className="mb-4">
+                <h3 className="text-lg font-medium">Select Beach Sets</h3>
+                <p className="text-sm text-muted-foreground">
+                  Choose the umbrella and chair sets for this reservation.
+                </p>
+              </div>
+
+              {setsLoading ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : availableZones.length > 0 ? (
+                <VisualSetSelectionGrid
+                  zones={availableZones}
+                  selectedZone={selectedZone}
+                  selectedSets={selectedSets}
+                  onZoneSelect={setSelectedZone}
+                  onSetToggle={handleSelectSet}
+                  sets={availableSets}
+                />
+              ) : (
+                <div className="text-center py-6">
+                  <p>No zones or sets available for this beach.</p>
+                </div>
+              )}
+
+              {selectedSets.length > 0 && (
+                <div className="mt-4 border-t pt-4">
+                  <h4 className="font-medium mb-2">Selected Sets ({selectedSets.length})</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedSets.map((set) => (
+                      <div
+                        key={set.id}
+                        className="bg-primary/10 text-primary rounded-md px-3 py-1 text-sm flex items-center gap-1"
+                      >
+                        <span>{set.name}</span>
+                        <button
+                          type="button"
+                          className="text-primary hover:text-primary/80"
+                          onClick={() => handleRemoveSet(set.id)}
+                          disabled={isSubmitting}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-3 text-right font-medium">
+                    Total: $
+                    {selectedSets
+                      .reduce((sum, set) => sum + Number(set.price || 0), 0)
+                      .toFixed(2)}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        <div className="flex justify-end gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => navigate(-1)}
+            disabled={isSubmitting}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isSubmitting || selectedSets.length === 0}>
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Create Reservation
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
-} 
+}

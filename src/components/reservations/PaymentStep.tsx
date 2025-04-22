@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2 } from "lucide-react";
 import { GuestReservationForm } from "./GuestReservationForm";
+import { cn } from "@/lib/utils";
 
 interface PaymentStepProps {
   isActive: boolean;
@@ -132,21 +133,42 @@ export function PaymentStep({
           </div>
         ) : (
           <div className="space-y-6">
-            <h3 className="font-semibold text-lg">Continue as Guest</h3>
-            <p className="text-gray-600 mb-4">
-              Please provide your contact information to continue with the reservation.
-            </p>
-            
-            <GuestReservationForm 
-              onSubmit={onGuestSubmit}
-              onCancel={onCancelGuest}
-              isSubmitting={isProcessing}
-            />
+            {!showGuestForm ? (
+              <>
+                <h3 className="font-semibold text-lg">Reservation Options</h3>
+                <div className="space-y-4">
+                  <Button 
+                    onClick={() => window.location.href = "/auth/login"}
+                    variant="outline" 
+                    className="w-full"
+                  >
+                    Sign in to make a reservation
+                  </Button>
+                  <Button 
+                    onClick={() => onGuestSubmit({ name: "", phone: "", email: "" })} 
+                    className="w-full"
+                  >
+                    Continue as Guest
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h3 className="font-semibold text-lg">Continue as Guest</h3>
+                <p className="text-gray-600 mb-4">
+                  Please provide your contact information to continue with the reservation.
+                </p>
+                
+                <GuestReservationForm 
+                  onSubmit={onGuestSubmit}
+                  onCancel={onCancelGuest}
+                  isSubmitting={isProcessing}
+                />
+              </>
+            )}
           </div>
         )}
       </div>
     </div>
   );
 }
-
-import { cn } from "@/lib/utils";

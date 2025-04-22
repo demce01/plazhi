@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Beach, Set, UserSession } from "@/types";
 import { useToast } from "@/hooks/use-toast";
@@ -70,6 +71,8 @@ export function useReservationSubmit(
           beach_id: beach?.id,
           reservation_date: format(selectedDate, "yyyy-MM-dd"),
           payment_amount: totalAmount,
+          status: "confirmed",
+          payment_status: "completed",
         })
         .select()
         .single();

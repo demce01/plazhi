@@ -261,7 +261,62 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_available_sets: {
+        Args: { target_beach_id: string; target_date: string }
+        Returns: {
+          beach_id: string
+          created_at: string | null
+          id: string
+          name: string
+          position: number | null
+          price: number
+          row_number: number | null
+          status: string | null
+          updated_at: string | null
+        }[]
+      }
+      get_claims: {
+        Args: { uid: string; claims: Json }
+        Returns: Json
+      }
+      get_current_auth_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_my_client_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_sets_with_status: {
+        Args: { target_beach_id: string; target_date: string }
+        Returns: {
+          id: string
+          beach_id: string
+          name: string
+          price: number
+          row_number: number
+          position: number
+          created_at: string
+          updated_at: string
+          status: string
+        }[]
+      }
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      list_all_users: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          user_id: string
+          email: string
+          role: string
+        }[]
+      }
+      set_user_role: {
+        Args: { target_user_id: string; new_role: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
