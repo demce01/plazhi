@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -15,19 +16,24 @@ export function useAdminUsers() {
   const queryClient = useQueryClient();
 
   const fetchUsersAdmin = async (): Promise<AdminManagedUser[]> => {
-    // RLS policy on the function handles authorization
-    const { data, error } = await (supabase as any).rpc('list_all_users');
+    try {
+      // RLS policy on the function handles authorization
+      const { data, error } = await supabase.rpc('list_all_users');
 
-    if (error) {
-      console.error("Admin: Error listing users:", error);
-      // Check for specific permission error if needed
-      if (error.code === 'P0001' || error.message.includes('Requires admin privileges')) { 
-          throw new Error("You do not have permission to view users.");
-      } else {
-          throw new Error(error.message || "Failed to list users");
+      if (error) {
+        console.error("Admin: Error listing users:", error);
+        // Check for specific permission error if needed
+        if (error.code === 'P0001' || error.message.includes('Requires admin privileges')) { 
+            throw new Error("You do not have permission to view users.");
+        } else {
+            throw new Error(error.message || "Failed to list users");
+        }
       }
+      return data || [];
+    } catch (error: any) {
+      console.error("Error in fetchUsersAdmin:", error);
+      throw error;
     }
-    return data || [];
   };
 
   const { 
@@ -61,4 +67,4 @@ export function useAdminUsers() {
     users,
     refreshUsers,
   };
-} 
+}
