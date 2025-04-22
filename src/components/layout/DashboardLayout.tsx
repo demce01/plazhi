@@ -1,12 +1,16 @@
 
-import { useState } from "react";
+import { useState, ReactNode } from "react";
 import { Outlet } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { PanelLeftOpen, PanelLeftClose } from "lucide-react";
 import { DashboardSidebar } from "./DashboardSidebar";
 
-export function DashboardLayout() {
+interface DashboardLayoutProps {
+  children?: ReactNode;
+}
+
+export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   return (
@@ -46,7 +50,7 @@ export function DashboardLayout() {
           </div>
         </div>
         <div className="p-6 max-w-7xl mx-auto">
-          <Outlet />
+          {children || <Outlet />}
         </div>
       </div>
     </div>
