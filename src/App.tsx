@@ -36,6 +36,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            {/* Main Layout Routes */}
             <Route element={<MainLayout />}>
               <Route path="/" element={<Index />} />
               <Route path="/find-reservation" element={<FindReservation />} />
@@ -56,14 +57,19 @@ const App = () => (
               <Route path="/dashboard" element={<DashboardOverview />} />
               <Route path="/beaches/:id" element={<BeachDetail />} />
               <Route path="/reservations" element={<ReservationsRouter />} />
-              <Route path="/admin" element={
+              <Route path="/settings" element={<DashboardOverview />} />
+              <Route path="/settings/admin" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <AdminDashboard />
                 </ProtectedRoute>
               } />
-              <Route path="/admin/reservations/:id" element={<ProtectedRoute allowedRoles={["admin"]}><AdminReservationDetail /></ProtectedRoute>} />
+              <Route path="/settings/admin/reservations/:id" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminReservationDetail />
+                </ProtectedRoute>
+              } />
               <Route 
-                path="/admin/create-reservation" 
+                path="/settings/admin/create-reservation" 
                 element={
                   <ProtectedRoute allowedRoles={["admin", "employee"]}>
                     <CreateOnSiteReservation />

@@ -1,3 +1,4 @@
+
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { cn } from "@/lib/utils";
@@ -7,24 +8,28 @@ import {
   CalendarDays,
   Settings,
   LogOut,
-  PlusCircle
+  PlusCircle,
+  Shield
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const MenuItem = ({ 
   to, 
   icon: Icon, 
-  children 
+  children,
+  className 
 }: { 
   to: string; 
   icon: React.ElementType; 
-  children: React.ReactNode; 
+  children: React.ReactNode;
+  className?: string;
 }) => (
   <Link
     to={to}
     className={cn(
       "flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50",
-      "hover:bg-gray-100 dark:hover:bg-gray-800"
+      "hover:bg-gray-100 dark:hover:bg-gray-800",
+      className
     )}
   >
     <Icon className="h-4 w-4" />
@@ -65,8 +70,18 @@ export function DashboardSidebar() {
           Settings
         </MenuItem>
 
+        {role === 'admin' && (
+          <MenuItem 
+            to="/settings/admin" 
+            icon={Shield}
+            className="ml-6 text-sm"
+          >
+            Admin Dashboard
+          </MenuItem>
+        )}
+
         {(role === 'admin' || role === 'employee') && (
-          <MenuItem to="/admin/create-reservation" icon={PlusCircle}>
+          <MenuItem to="/settings/admin/create-reservation" icon={PlusCircle}>
             Create On-Site Booking
           </MenuItem>
         )}
