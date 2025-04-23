@@ -19,6 +19,7 @@ export function useAdminUsers() {
 
   const fetchUsersAdmin = async (): Promise<AdminManagedUser[]> => {
     try {
+      console.log("Fetching admin users list");
       const { data, error } = await supabase.rpc('list_all_users');
 
       if (error) {
@@ -39,6 +40,7 @@ export function useAdminUsers() {
         last_sign_in: user.last_sign_in || null,
       })) || [];
       
+      console.log("Fetched users:", transformedData.length);
       return transformedData;
     } catch (error: any) {
       console.error("Error in fetchUsersAdmin:", error);

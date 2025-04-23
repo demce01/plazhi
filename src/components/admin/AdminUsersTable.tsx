@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Table,
@@ -16,18 +17,19 @@ import {
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AdminManagedUser } from '@/hooks/admin/useAdminUsers'; // Import type
+import { AdminManagedUser } from '@/hooks/admin/useAdminUsers';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { toast as sonnerToast } from "sonner";
-import { Loader2, Save, UserPlus, Search, X, Filter } from 'lucide-react';
+import { Loader2, Save, UserPlus, Search, X, Filter, Calendar } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { format, parseISO } from 'date-fns';
 
 interface AdminUsersTableProps {
   users: AdminManagedUser[];
   isLoading: boolean;
-  onActionComplete: () => void; // Callback to refresh data
+  onActionComplete: () => void;
 }
 
 export function AdminUsersTable({ 
@@ -37,7 +39,7 @@ export function AdminUsersTable({
 }: AdminUsersTableProps) {
   const { toast } = useToast();
   const [processingId, setProcessingId] = useState<string | null>(null); 
-  const [selectedRole, setSelectedRole] = useState<{[key: string]: string}>({}); // Store role changes locally
+  const [selectedRole, setSelectedRole] = useState<{[key: string]: string}>({}); 
   const [showAddUser, setShowAddUser] = useState(false);
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserRole, setNewUserRole] = useState('client');
@@ -50,11 +52,11 @@ export function AdminUsersTable({
 
   const saveRoleChange = async (userId: string) => {
     const newRole = selectedRole[userId];
-    if (!newRole) return; // Should not happen if button is enabled
+    if (!newRole) return;
 
     setProcessingId(userId);
     try {
-      // Cast supabase to any for RPC call
+      console.log("Updating role for user:", userId, "New role:", newRole);
       const { error } = await supabase.rpc('set_user_role', { 
           target_user_id: userId,
           new_role: newRole 
@@ -62,17 +64,15 @@ export function AdminUsersTable({
 
       if (error) {
           console.error("Set role RPC error:", error);
-          // Check for specific permission error if needed
           if (error.code === 'P0001' || error.message.includes('Requires admin privileges') || error.message.includes('Invalid role')) { 
-              throw new Error(error.message); // Show specific error from function
+              throw new Error(error.message);
           } else {
               throw new Error(error.message || "Failed to update role");
           }
       }
       
       sonnerToast.success(`User role updated to ${newRole}.`);
-      onActionComplete(); // Refresh user list
-      // Clear local change state for this user
+      onActionComplete();
       setSelectedRole(prev => { 
           const newState = {...prev};
           delete newState[userId];
@@ -80,6 +80,7 @@ export function AdminUsersTable({
       });
 
     } catch (error: any) {
+      console.error("Role update failed:", error);
       toast({ title: "Role Update Failed", description: error.message, variant: "destructive" });
     } finally {
       setProcessingId(null);
@@ -98,8 +99,9 @@ export function AdminUsersTable({
 
     setProcessingId('new-user');
     try {
+      console.log("Inviting new user:", newUserEmail, "Role:", newUserRole);
+      
       // Since create_user RPC isn't available, we need to use the admin API to invite a user
-      // This is a workaround - in a real app, you'd want to create a proper RPC function
       const { data, error } = await supabase.auth.admin.inviteUserByEmail(newUserEmail.trim(), {
         data: {
           role: newUserRole
@@ -111,11 +113,13 @@ export function AdminUsersTable({
         throw new Error(error.message || "Failed to create user");
       }
 
+      console.log("User invitation sent:", data);
       sonnerToast.success(`Invitation sent to ${newUserEmail} with role ${newUserRole}`);
       setNewUserEmail('');
       setShowAddUser(false);
-      onActionComplete(); // Refresh user list
+      onActionComplete();
     } catch (error: any) {
+      console.error("User creation failed:", error);
       toast({ 
         title: "User Creation Failed", 
         description: error.message, 
@@ -123,6 +127,17 @@ export function AdminUsersTable({
       });
     } finally {
       setProcessingId(null);
+    }
+  };
+
+  // Format the date string or return a placeholder
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return "N/A";
+    try {
+      return format(parseISO(dateString), 'MMM d, yyyy');
+    } catch (e) {
+      console.error("Date parsing error:", e);
+      return "Invalid date";
     }
   };
 
@@ -230,6 +245,8 @@ export function AdminUsersTable({
             <TableRow>
               <TableHead>Email</TableHead>
               <TableHead>Current Role</TableHead>
+              <TableHead className="hidden md:table-cell">Created</TableHead>
+              <TableHead className="hidden md:table-cell">Last Sign In</TableHead>
               <TableHead>Change Role</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -237,7 +254,7 @@ export function AdminUsersTable({
           <TableBody>
             {filteredUsers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center h-24 text-muted-foreground">
+                <TableCell colSpan={6} className="text-center h-24 text-muted-foreground">
                   No users match your search criteria
                 </TableCell>
               </TableRow>
@@ -258,13 +275,27 @@ export function AdminUsersTable({
                         {user.role || 'Unknown'}
                       </Badge>
                     </TableCell>
+                    <TableCell className="hidden md:table-cell text-muted-foreground">
+                      <div className="flex items-center">
+                        <Calendar className="mr-2 h-3 w-3 opacity-70" />
+                        {formatDate(user.created_at)}
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell text-muted-foreground">
+                      {user.last_sign_in ? (
+                        <div className="flex items-center">
+                          <Calendar className="mr-2 h-3 w-3 opacity-70" />
+                          {formatDate(user.last_sign_in)}
+                        </div>
+                      ) : 'Never'}
+                    </TableCell>
                     <TableCell>
                       <Select 
                         value={currentRoleSelection || 'client'} 
                         onValueChange={(value) => handleRoleChange(user.user_id, value)}
                         disabled={isProcessing}
                       >
-                        <SelectTrigger className="w-[180px]">
+                        <SelectTrigger className="w-[120px]">
                           <SelectValue placeholder="Select role" />
                         </SelectTrigger>
                         <SelectContent>

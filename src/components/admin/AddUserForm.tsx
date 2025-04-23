@@ -55,19 +55,28 @@ export function AddUserForm({ onSuccess, defaultRole = "employee" }: AddUserForm
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
     try {
+      console.log("Creating new user with data:", { 
+        email: data.email, 
+        role: data.role,
+        name: data.name
+      });
+      
       // Create the user with Supabase auth
       const { data: authData, error: authError } = await supabase.rpc('create_new_user', {
         user_email: data.email,
         user_password: data.password,
         user_role: data.role,
         first_name: data.name,
-        phone_number: data.phone
+        phone_number: data.phone || null
       });
 
       if (authError) {
+        console.error("Error creating user:", authError);
         throw new Error(authError.message);
       }
 
+      console.log("User created successfully:", authData);
+      
       toast({
         title: "User created successfully",
         description: `${data.name} has been added as a ${data.role}`,
@@ -77,6 +86,7 @@ export function AddUserForm({ onSuccess, defaultRole = "employee" }: AddUserForm
       form.reset();
       onSuccess();
     } catch (error: any) {
+      console.error("Error in onSubmit:", error);
       toast({
         title: "Error creating user",
         description: error.message || "An unexpected error occurred",
@@ -146,7 +156,7 @@ export function AddUserForm({ onSuccess, defaultRole = "employee" }: AddUserForm
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" {...field} />
+                    <Input type="password" placeholder="Strong password" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
