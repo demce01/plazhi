@@ -8,7 +8,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { Loader2, Check, X, Eye, Calendar } from "lucide-react";
+import { Loader2, Check, X, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
@@ -16,6 +16,20 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { ReservationWithBeachAdmin } from "@/hooks/admin/useAdminReservations";
 import { supabase } from "@/integrations/supabase/client";
+
+// Helper to get zone/set string
+const getZoneSetString = (reservation_sets: any[] | undefined) => {
+  if (!reservation_sets || reservation_sets.length === 0) return "—";
+  if (reservation_sets.length === 1) {
+    const rs = reservation_sets[0];
+    // Prefer zone name, then set name
+    if (rs.set?.zone?.name) return `${rs.set.zone.name} – ${rs.set.name}`;
+    if (rs.set?.name) return rs.set.name;
+    return "-";
+  }
+  // Multiple sets: just say "(multiple)"
+  return "(multiple)";
+};
 
 interface AdminReservationsTableProps {
   reservations: ReservationWithBeachAdmin[];
@@ -36,46 +50,97 @@ export function AdminReservationsTable({
   const { toast } = useToast();
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
+  // Track reservation sets for each reservation
+  const [reservationSetsMap, setReservationSetsMap] = React.useState<Record<string, any[]>>({});
+
+  // Fetch sets for each reservation on mount
+  React.useEffect(() => {
+    async function fetchAllReservationSets() {
+      const ids = reservations.map((r) => r.id);
+      if (ids.length === 0) return;
+      const { data, error } = await supabase
+        .from("reservation_sets")
+        .select(`
+          reservation_id,
+          set: set_id (
+            id, name,
+            zone:beach_id( name )
+          )
+        `)
+        .in("reservation_id", ids);
+      if (data) {
+        // Group by reservation_id
+        const byReservation: Record<string, any[]> = {};
+        data.forEach((rs: any) => {
+          if (!byReservation[rs.reservation_id]) byReservation[rs.reservation_id] = [];
+          byReservation[rs.reservation_id].push(rs);
+        });
+        setReservationSetsMap(byReservation);
+      }
+    }
+    fetchAllReservationSets();
+  }, [reservations]);
+
   const getStatusBadge = (status: string | null) => {
     if (!status) return <Badge variant="outline">Pending</Badge>;
-    
     switch (status.toLowerCase()) {
       case 'confirmed':
-        return <Badge className="bg-green-500">Confirmed</Badge>;
+        return <Badge className="bg-green-500 text-white">Confirmed</Badge>;
       case 'cancelled':
         return <Badge variant="destructive">Cancelled</Badge>;
       case 'completed':
-        return <Badge className="bg-blue-500">Completed</Badge>;
+        return <Badge className="bg-blue-500 text-white">Completed</Badge>;
       case 'pending':
       default:
         return <Badge variant="outline">Pending</Badge>;
     }
   };
 
-  const toggleCheckIn = async (reservation: ReservationWithBeachAdmin) => {
+  // Action handlers
+  const handleCheckIn = async (reservation: ReservationWithBeachAdmin) => {
     try {
       setUpdatingId(reservation.id);
-      
       const { error } = await supabase
-        .from('reservations')
-        .update({ checked_in: !reservation.checked_in })
-        .eq('id', reservation.id);
-        
+        .from("reservations")
+        .update({ checked_in: true })
+        .eq("id", reservation.id);
       if (error) throw error;
-      
       toast({
-        title: reservation.checked_in ? "Check-in reverted" : "Checked in successfully",
-        description: `${reservation.guest_name} has been ${reservation.checked_in ? 'unchecked' : 'checked'} in.`,
+        title: "Checked in successfully",
+        description: `${reservation.guest_name} has been checked in.`,
       });
-      
-      if (onActionComplete) onActionComplete();
+      onActionComplete?.();
     } catch (error) {
       toast({
-        title: "Error updating check-in status",
-        description: "There was a problem updating the check-in status. Please try again.",
-        variant: "destructive"
+        title: "Check-in error",
+        description: "Could not check in reservation.",
+        variant: "destructive",
       });
-      console.error("Check-in error:", error);
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const handleCancel = async (reservation: ReservationWithBeachAdmin) => {
+    try {
+      setUpdatingId(reservation.id);
+      const { error } = await supabase
+        .from("reservations")
+        .update({ status: "cancelled" })
+        .eq("id", reservation.id);
+      if (error) throw error;
+      toast({
+        title: "Reservation cancelled",
+        description: `${reservation.guest_name}'s reservation cancelled.`,
+        variant: "warning"
+      });
+      onActionComplete?.();
+    } catch (error) {
+      toast({
+        title: "Cancellation error",
+        description: "Could not cancel reservation.",
+        variant: "destructive",
+      });
     } finally {
       setUpdatingId(null);
     }
@@ -108,8 +173,8 @@ export function AdminReservationsTable({
             <TableHead>Date</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Amount</TableHead>
-            {showCheckInColumn && <TableHead>Checked In</TableHead>}
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead>Zone &amp; Set</TableHead>
+            <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -131,40 +196,58 @@ export function AdminReservationsTable({
               </TableCell>
               <TableCell>{getStatusBadge(reservation.status)}</TableCell>
               <TableCell>${Number(reservation.payment_amount).toFixed(2)}</TableCell>
-              
-              {showCheckInColumn && (
-                <TableCell>
+              <TableCell>
+                {getZoneSetString(reservationSetsMap[reservation.id])}
+              </TableCell>
+              <TableCell>
+                <div className="flex gap-2">
                   <Button
-                    variant={reservation.checked_in ? "default" : "outline"}
+                    variant="ghost"
                     size="sm"
-                    className={`w-24 ${reservation.checked_in ? "bg-green-500 hover:bg-green-600" : ""}`}
-                    onClick={() => toggleCheckIn(reservation)}
-                    disabled={updatingId === reservation.id}
+                    onClick={() => navigate(`/admin/reservations/${reservation.id}`)}
                   >
-                    {updatingId === reservation.id ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : reservation.checked_in ? (
-                      <>
-                        <Check className="h-4 w-4 mr-1" /> Checked
-                      </>
-                    ) : (
-                      <>
-                        <X className="h-4 w-4 mr-1" /> Check In
-                      </>
-                    )}
+                    <Eye className="h-4 w-4 mr-1" />
+                    View
                   </Button>
-                </TableCell>
-              )}
-              
-              <TableCell className="text-right">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate(`/settings/admin/reservations/${reservation.id}`)}
-                >
-                  <Eye className="h-4 w-4 mr-1" />
-                  View
-                </Button>
+                  {reservation.status !== "cancelled" && (
+                    <>
+                      <Button
+                        variant={reservation.checked_in ? "default" : "outline"}
+                        size="sm"
+                        className={`${reservation.checked_in ? "bg-green-500 hover:bg-green-600" : ""}`}
+                        onClick={() => handleCheckIn(reservation)}
+                        disabled={reservation.checked_in || updatingId === reservation.id}
+                      >
+                        {updatingId === reservation.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : reservation.checked_in ? (
+                          <>
+                            <Check className="h-4 w-4 mr-1" /> Checked
+                          </>
+                        ) : (
+                          <>
+                            <Check className="h-4 w-4 mr-1" /> Check In
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleCancel(reservation)}
+                        disabled={updatingId === reservation.id}
+                      >
+                        {updatingId === reservation.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <>
+                            <X className="h-4 w-4 mr-1" />
+                            Cancel
+                          </>
+                        )}
+                      </Button>
+                    </>
+                  )}
+                </div>
               </TableCell>
             </TableRow>
           ))}
@@ -173,4 +256,3 @@ export function AdminReservationsTable({
     </div>
   );
 }
-
