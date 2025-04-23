@@ -27,10 +27,6 @@ export function DashboardSidebar() {
           Dashboard
         </MenuItem>
 
-        <MenuItem to="/user/reservations" icon={CalendarDays}>
-          Reservation Management
-        </MenuItem>
-
         {role === 'admin' && (
           <MenuItem to="/admin/reservations" icon={CalendarDays}>
             Admin Reservations
