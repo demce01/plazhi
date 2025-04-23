@@ -7,7 +7,7 @@ import { LoadingSpinner } from "./LoadingSpinner";
 // Lazy-loaded pages
 const Index = lazy(() => import("@/pages/Index"));
 const Dashboard = lazy(() => import("@/pages/dashboard/Dashboard"));
-const BeachList = lazy(() => import("@/pages/beaches/BeachList"));
+const BeachesList = lazy(() => import("@/pages/beaches/BeachesList"));
 const BeachReservation = lazy(() => import("@/pages/beaches/BeachReservation"));
 const ReservationSuccess = lazy(() => import("@/pages/beaches/ReservationSuccess"));
 const UserReservations = lazy(() => import("@/pages/user/UserReservations"));
@@ -39,7 +39,7 @@ export const mainRoutes = {
       path: "beaches",
       element: (
         <Suspense fallback={<LoadingSpinner />}>
-          <BeachList />
+          <BeachesList />
         </Suspense>
       ),
     },
@@ -83,4 +83,3 @@ export const mainRoutes = {
     },
   ],
 };
-

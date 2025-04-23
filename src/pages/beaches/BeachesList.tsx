@@ -1,4 +1,5 @@
-import { Beach, PublicBeachInfo } from "@/types";
+
+import { PublicBeachInfo } from "@/types";
 import { Loader2, MapPin } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
