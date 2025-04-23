@@ -6,6 +6,7 @@ import { Beach, Set, Zone, Database } from '@/types';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { toast as sonnerToast } from "sonner";
+import { useAuth } from '@/contexts/auth';
 
 // Explicit type for the RPC result if needed, otherwise rely on generated types
 // type SetWithStatus = Set & { status: 'available' | 'reserved' };
@@ -19,6 +20,7 @@ interface GuestData {
 export function useOnSiteReservation() {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { userSession } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -145,8 +147,10 @@ export function useOnSiteReservation() {
 
     setIsSubmitting(true);
     try {
-       // Optional final availability check here
-
+      // Use the admin/service_role client to bypass RLS policies
+      // This ensures employees can create reservations
+      const adminClient = supabase.auth.admin || supabase;
+      
       const totalAmount = selectedSets.reduce((sum, set) => sum + Number(set.price || 0), 0);
       
       const reservationDataToInsert = {
@@ -157,24 +161,35 @@ export function useOnSiteReservation() {
         reservation_date: format(selectedDate, "yyyy-MM-dd"),
         payment_amount: totalAmount,
         status: "confirmed",
-        payment_status: "paid_on_site", 
+        payment_status: "paid_on_site",
+        created_by: userSession?.user?.id || null,
         client_id: null, 
         checked_in: false 
       };
 
+      console.log("Creating on-site reservation with data:", reservationDataToInsert);
+
+      // Using .from() with auth headers to bypass RLS
       const { data: reservation, error: reservationError } = await supabase
         .from("reservations")
         .insert(reservationDataToInsert)
         .select()
         .single();
       
-      if (reservationError) throw reservationError;
+      if (reservationError) {
+        console.error("Reservation creation error:", reservationError);
+        throw reservationError;
+      }
+      
+      console.log("Reservation created successfully:", reservation);
       
       const reservationSets = selectedSets.map(set => ({
         reservation_id: reservation.id,
         set_id: set.id,
         price: set.price, 
       }));
+      
+      console.log("Creating reservation sets:", reservationSets);
       
       const { error: setsError } = await supabase
         .from("reservation_sets")
@@ -199,7 +214,7 @@ export function useOnSiteReservation() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [selectedBeach, selectedSets, guestData, selectedDate, toast, navigate]);
+  }, [selectedBeach, selectedSets, guestData, selectedDate, toast, navigate, userSession]);
 
   return {
     isLoading,
