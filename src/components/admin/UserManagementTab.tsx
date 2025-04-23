@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { useAdminUsers } from "@/hooks/admin/useAdminUsers";
 import { AdminUsersTable } from "./AdminUsersTable";
 import { Button } from '@/components/ui/button';
@@ -16,11 +15,12 @@ export function UserManagementTab() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold">User Management</h2>
-          <p className="text-muted-foreground">View, create and manage user accounts and roles.</p>
-        </div>
+      <div>
+        <h1 className="text-3xl font-bold">User Management</h1>
+        <p className="text-muted-foreground">View, create and manage user accounts and roles. "Employee" is for users that manage on-site bookings and payments.</p>
+      </div>
+      
+      <div className="flex justify-end">
         <Button variant="outline" size="sm" onClick={() => refetch()}>
           <RefreshCw className="h-4 w-4 mr-2" />
           Refresh

@@ -1,5 +1,5 @@
 
-import { Shield, Umbrella, FileText } from "lucide-react";
+import { Shield, Umbrella, FileText, Users } from "lucide-react";
 import { MenuItem } from "./MenuItem";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -17,15 +17,15 @@ export function AdminMenu() {
   // Initial menu items with Reservation Management first
   const initialMenuItems: AdminMenuItem[] = [
     {
-      to: "/admin/beaches",
-      icon: Umbrella,
-      label: "Beach Management",
+      to: "/admin/users",
+      icon: Users,
+      label: "User Management",
       className: "ml-6 text-sm"
     },
     {
-      to: "/admin",
-      icon: Shield,
-      label: "Admin Dashboard",
+      to: "/admin/beaches",
+      icon: Umbrella,
+      label: "Beach Management",
       className: "ml-6 text-sm"
     },
     {

@@ -1,4 +1,3 @@
-
 import { lazy, Suspense } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { RoleProtectedRoute } from "@/components/auth/RoleProtectedRoute";
@@ -23,7 +22,7 @@ export const adminRoutes = {
   element: <DashboardLayout />,
   children: [
     {
-      index: true,
+      path: "users",
       element: (
         <Suspense fallback={<LoadingSpinner />}>
           <RoleProtectedRoute roles={["admin"]}>
