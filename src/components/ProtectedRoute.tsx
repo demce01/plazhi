@@ -31,6 +31,8 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
       return <Navigate to="/reservations" state={stateWithoutFlag} replace />;
     } else if (role === 'admin') {
       return <Navigate to="/admin" state={stateWithoutFlag} replace />;
+    } else if (role === 'employee') {
+      return <Navigate to="/admin/reservations" state={stateWithoutFlag} replace />;
     }
     return <Navigate to="/" state={stateWithoutFlag} replace />;
   }

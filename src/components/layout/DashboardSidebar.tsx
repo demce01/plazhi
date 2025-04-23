@@ -5,11 +5,14 @@ import { LayoutDashboard, CalendarDays, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MenuItem } from "./sidebar/MenuItem";
 import { ConfigurationMenu } from "./sidebar/ConfigurationMenu";
+import { AdminMenu } from "./sidebar/AdminMenu";
 
 export function DashboardSidebar() {
   const navigate = useNavigate();
   const { userSession, signOut } = useAuth();
   const role = userSession?.role;
+  const isAdmin = role === 'admin';
+  const isEmployee = role === 'employee';
 
   const handleSignOut = async () => {
     await signOut();
@@ -27,13 +30,18 @@ export function DashboardSidebar() {
           Dashboard
         </MenuItem>
 
-        {role === 'admin' && (
-          <MenuItem to="/admin/reservations" icon={CalendarDays}>
-            Reservation Management
-          </MenuItem>
+        {(isAdmin || isEmployee) && (
+          <>
+            <MenuItem to="/admin/reservations" icon={CalendarDays}>
+              Reservation Management
+            </MenuItem>
+            <AdminMenu />
+          </>
         )}
 
-        <ConfigurationMenu role={role} />
+        {!isAdmin && !isEmployee && (
+          <ConfigurationMenu role={role} />
+        )}
       </div>
 
       <div className="border-t p-4">

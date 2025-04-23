@@ -1,6 +1,4 @@
 
-
-
 import { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
@@ -16,6 +14,9 @@ export function RoleProtectedRoute({ children, roles }: RoleProtectedRouteProps)
   const { userSession } = useAuth();
   const { user, role, loading } = userSession;
   const location = useLocation();
+
+  console.log("[RoleProtectedRoute] Checking role:", role, "against allowed roles:", roles);
+  console.log("[RoleProtectedRoute] Loading:", loading);
 
   // Show loading spinner while checking authentication
   if (loading) {
