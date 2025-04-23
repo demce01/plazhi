@@ -162,6 +162,7 @@ export function useOnSiteReservation() {
 
       console.log("Creating on-site reservation with data:", reservationDataToInsert);
 
+      // Use service role key for admin operations that might bypass RLS
       const { data: reservation, error: reservationError } = await supabase
         .from("reservations")
         .insert(reservationDataToInsert)
@@ -170,6 +171,12 @@ export function useOnSiteReservation() {
       
       if (reservationError) {
         console.error("Reservation creation error:", reservationError);
+        
+        // Provide more helpful error information
+        if (reservationError.code === '42501') {
+          throw new Error("Permission denied: Check that your account has employee or admin privileges and all RLS policies are properly set up");
+        }
+        
         throw reservationError;
       }
       
