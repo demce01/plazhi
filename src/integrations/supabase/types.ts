@@ -322,6 +322,8 @@ export type Database = {
           user_id: string
           email: string
           role: string
+          created_at: string
+          last_sign_in: string
         }[]
       }
       set_user_role: {

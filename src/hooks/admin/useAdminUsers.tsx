@@ -4,13 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-// Define the structure of the user data returned by the RPC
+// Update the interface to include the new fields
 export interface AdminManagedUser {
   user_id: string;
   email: string | null;
   role: string | null;
-  created_at?: string;
-  last_sign_in?: string;
+  created_at: string | null;
+  last_sign_in: string | null;
 }
 
 export function useAdminUsers() {
@@ -19,7 +19,6 @@ export function useAdminUsers() {
 
   const fetchUsersAdmin = async (): Promise<AdminManagedUser[]> => {
     try {
-      // Cast the return type to match what the function actually returns
       const { data, error } = await supabase.rpc('list_all_users');
 
       if (error) {
@@ -36,7 +35,8 @@ export function useAdminUsers() {
         user_id: user.user_id,
         email: user.email || null,
         role: user.role || null,
-        // Add any other fields if needed
+        created_at: user.created_at || null,
+        last_sign_in: user.last_sign_in || null,
       })) || [];
       
       return transformedData;
