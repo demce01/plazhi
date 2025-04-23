@@ -31,7 +31,15 @@ export function useAdminUsers() {
         }
       }
       
-      return data || [];
+      // Transform the data to ensure it matches our expected type
+      const transformedData = data?.map(user => ({
+        user_id: user.user_id,
+        email: user.email || null,
+        role: user.role || null,
+        // Add any other fields if needed
+      })) || [];
+      
+      return transformedData;
     } catch (error: any) {
       console.error("Error in fetchUsersAdmin:", error);
       throw error;
@@ -73,4 +81,3 @@ export function useAdminUsers() {
     refetch,
   };
 }
-

@@ -1,7 +1,7 @@
 
 -- Fix the list_all_users function to ensure correct return types
 CREATE OR REPLACE FUNCTION public.list_all_users()
- RETURNS TABLE(user_id uuid, email text, role text)
+ RETURNS TABLE(user_id uuid, email text, role text, created_at timestamptz, last_sign_in timestamptz)
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
  SET search_path TO 'public'
@@ -16,7 +16,9 @@ AS $$
         SELECT
             u.id as user_id,
             u.email::text,  -- Explicitly cast to text
-            COALESCE(u.raw_app_meta_data ->> 'role', 'client')::text as role  -- Ensure role is text
+            COALESCE(u.raw_app_meta_data ->> 'role', 'client')::text as role,  -- Ensure role is text
+            u.created_at,
+            u.last_sign_in_at as last_sign_in
         FROM auth.users u
         ORDER BY u.email;
     END;
