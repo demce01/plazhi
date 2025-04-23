@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase } from "@/integrations/supabase/admin-client";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Reservation } from "@/types";
@@ -15,7 +16,8 @@ export function useAdminReservations() {
 
   const fetchReservationsAdmin = async (): Promise<ReservationWithBeachAdmin[]> => {
     console.log("Fetching reservations for admin/employee view");
-    const { data, error } = await supabase
+    // Use the admin client to bypass RLS
+    const { data, error } = await adminSupabase
       .from("reservations")
       .select(`
         *,

@@ -1,15 +1,12 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { adminSupabase } from '@/integrations/supabase/admin-client';
 import { useToast } from '@/hooks/use-toast';
 import { Beach, Set, Zone, Database } from '@/types';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { toast as sonnerToast } from "sonner";
 import { useAuth } from '@/contexts/auth';
-
-// Explicit type for the RPC result if needed, otherwise rely on generated types
-// type SetWithStatus = Set & { status: 'available' | 'reserved' };
 
 interface GuestData {
   name: string;
@@ -28,7 +25,7 @@ export function useOnSiteReservation() {
   const [selectedBeach, setSelectedBeach] = useState<Beach | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [zones, setZones] = useState<Zone[]>([]);
-  const [sets, setSets] = useState<Set[]>([]); // Holds ALL sets + status from RPC
+  const [sets, setSets] = useState<Set[]>([]); 
   const [selectedZone, setSelectedZone] = useState<Zone | null>(null);
   const [selectedSets, setSelectedSets] = useState<Set[]>([]);
   const [guestData, setGuestData] = useState<GuestData | null>(null);
@@ -103,9 +100,7 @@ export function useOnSiteReservation() {
   }, [selectedBeach, selectedDate, toast]); 
 
   const handleSelectSet = (set: Set) => {
-    // Find the set in our current state to check its actual status
     const setInState = sets.find(s => s.id === set.id);
-    // Use the status field returned by the RPC
     if (setInState && (setInState as any).status === 'reserved') { 
         toast({ 
             title: "Set Reserved", 
@@ -161,9 +156,8 @@ export function useOnSiteReservation() {
       };
 
       console.log("Creating on-site reservation with data:", reservationDataToInsert);
-
-      // Use service role key for admin operations that might bypass RLS
-      const { data: reservation, error: reservationError } = await supabase
+      
+      const { data: reservation, error: reservationError } = await adminSupabase
         .from("reservations")
         .insert(reservationDataToInsert)
         .select()
@@ -171,12 +165,6 @@ export function useOnSiteReservation() {
       
       if (reservationError) {
         console.error("Reservation creation error:", reservationError);
-        
-        // Provide more helpful error information
-        if (reservationError.code === '42501') {
-          throw new Error("Permission denied: Check that your account has employee or admin privileges and all RLS policies are properly set up");
-        }
-        
         throw reservationError;
       }
       
@@ -190,13 +178,13 @@ export function useOnSiteReservation() {
       
       console.log("Creating reservation sets:", reservationSets);
       
-      const { error: setsError } = await supabase
+      const { error: setsError } = await adminSupabase
         .from("reservation_sets")
         .insert(reservationSets);
       
       if (setsError) {
          console.error("Reservation sets error, attempting rollback of reservation:", setsError);
-         await supabase.from('reservations').delete().eq('id', reservation.id);
+         await adminSupabase.from('reservations').delete().eq('id', reservation.id);
          throw new Error(`Failed to link sets to reservation: ${setsError.message}. Reservation cancelled.`);
       }
       

@@ -1,8 +1,10 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase } from "@/integrations/supabase/admin-client";
 import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
-import { Reservation } from "@/types"; // Use the base Reservation type
+import { Reservation } from "@/types";
 
 // This hook provides functions for admin-specific reservation actions
 export function useAdminReservationActions(onActionComplete?: () => void) {
@@ -19,7 +21,7 @@ export function useAdminReservationActions(onActionComplete?: () => void) {
     
     setProcessing(reservation.id, true);
     try {
-      const { error } = await supabase
+      const { error } = await adminSupabase
         .from("reservations")
         .update({ 
           checked_in: true,
@@ -49,11 +51,10 @@ export function useAdminReservationActions(onActionComplete?: () => void) {
 
     setProcessing(reservation.id, true);
     try {
-      const { error } = await supabase
+      const { error } = await adminSupabase
         .from("reservations")
         .update({ 
           status: "cancelled",
-          // Optionally: set checked_in to false if cancelling? Depends on business logic.
           updated_at: new Date().toISOString()
         })
         .eq("id", reservation.id);
@@ -79,4 +80,4 @@ export function useAdminReservationActions(onActionComplete?: () => void) {
     handleAdminCheckIn,
     handleAdminCancel,
   };
-} 
+}
