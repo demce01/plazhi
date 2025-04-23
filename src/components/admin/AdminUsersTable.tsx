@@ -99,13 +99,16 @@ export function AdminUsersTable({
 
     setProcessingId('new-user');
     try {
-      console.log("Inviting new user:", newUserEmail, "Role:", newUserRole);
+      console.log("Creating new user:", newUserEmail, "Role:", newUserRole);
       
-      // Since create_user RPC isn't available, we need to use the admin API to invite a user
-      const { data, error } = await supabase.auth.admin.inviteUserByEmail(newUserEmail.trim(), {
-        data: {
-          role: newUserRole
-        }
+      // Use the RPC function to create a new user
+      const { data, error } = await supabase.rpc('create_new_user', {
+        user_email: newUserEmail.trim(),
+        user_password: 'Temp' + Math.random().toString(36).slice(-8) + '!', // Generate a secure temporary password
+        user_role: newUserRole,
+        first_name: 'New User', // Default name
+        last_name: '',
+        phone_number: null
       });
 
       if (error) {
@@ -113,8 +116,8 @@ export function AdminUsersTable({
         throw new Error(error.message || "Failed to create user");
       }
 
-      console.log("User invitation sent:", data);
-      sonnerToast.success(`Invitation sent to ${newUserEmail} with role ${newUserRole}`);
+      console.log("User created:", data);
+      sonnerToast.success(`User ${newUserEmail} created with role ${newUserRole}`);
       setNewUserEmail('');
       setShowAddUser(false);
       onActionComplete();
