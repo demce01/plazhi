@@ -67,7 +67,7 @@ export const adminRoutes = {
       path: "reservations",
       element: (
         <Suspense fallback={<LoadingSpinner />}>
-          <RoleProtectedRoute roles={["admin"]}>
+          <RoleProtectedRoute roles={["admin", "employee"]}>
             <ReservationsPage />
           </RoleProtectedRoute>
         </Suspense>
@@ -77,7 +77,7 @@ export const adminRoutes = {
       path: "reservations/:id",
       element: (
         <Suspense fallback={<LoadingSpinner />}>
-          <RoleProtectedRoute roles={["admin"]}>
+          <RoleProtectedRoute roles={["admin", "employee"]}>
             <AdminReservationDetail />
           </RoleProtectedRoute>
         </Suspense>

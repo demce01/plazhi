@@ -7,9 +7,12 @@ export function AdminMenu() {
   const { userSession } = useAuth();
   const { role } = userSession;
 
+  const isEmployee = role === 'employee';
+  const isAdmin = role === 'admin';
+
   return (
     <div className="space-y-1">
-      {role === "admin" && (
+      {isAdmin && (
         <>
           <MenuItem to="/admin/users" icon={Users}>
             Users Management
@@ -23,14 +26,16 @@ export function AdminMenu() {
         </>
       )}
       
-      <MenuItem to="/admin/reservations" icon={CalendarCheck}>
-        Reservations
-      </MenuItem>
-      
-      {/* Show this for admin and employees */}
-      <MenuItem to="/admin/create-reservation" icon={Plus}>
-        Create On-Site Reservation
-      </MenuItem>
+      {(isAdmin || isEmployee) && (
+        <>
+          <MenuItem to="/admin/reservations" icon={CalendarCheck}>
+            Reservations
+          </MenuItem>
+          <MenuItem to="/admin/create-reservation" icon={Plus}>
+            Create On-Site Reservation
+          </MenuItem>
+        </>
+      )}
       
       <MenuItem to="/user/profile" icon={UserRound}>
         My Profile
