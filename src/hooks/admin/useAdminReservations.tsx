@@ -3,9 +3,8 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Reservation } from "@/types"; // Assuming Reservation type exists
+import { Reservation } from "@/types";
 
-// Combine reservation with beach name for display
 export interface ReservationWithBeachAdmin extends Reservation {
   beach_name?: string;
 }
@@ -15,7 +14,7 @@ export function useAdminReservations() {
   const queryClient = useQueryClient();
 
   const fetchReservationsAdmin = async (): Promise<ReservationWithBeachAdmin[]> => {
-    // RLS policy should ensure only admins/employees can fetch all reservations
+    console.log("Fetching reservations for admin/employee view");
     const { data, error } = await supabase
       .from("reservations")
       .select(`
@@ -29,15 +28,22 @@ export function useAdminReservations() {
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("Admin: Error loading reservations:", error);
-      throw new Error(error.message || "Failed to fetch reservations");
+      console.error("Error loading reservations:", error);
+      throw new Error(error.message || "Failed to fetch reservations. Please ensure you have proper permissions.");
     }
 
+    if (!data) {
+      console.log("No reservations found");
+      return [];
+    }
+
+    console.log(`Found ${data.length} reservations`);
+    
     // Transform data
-    return data?.map(reservation => ({
+    return data.map(reservation => ({
       ...reservation,
       beach_name: (reservation.beach as any)?.name || "Unknown Beach"
-    })) || [];
+    }));
   };
 
   const { 
@@ -48,27 +54,25 @@ export function useAdminReservations() {
     queryKey: ['adminReservations'],
     queryFn: fetchReservationsAdmin,
     staleTime: 1 * 60 * 1000, // Refetch after 1 minute
+    retry: 1, // Only retry once if there's an error
   });
 
-  // Handle error state
+  // Handle error state with more specific messaging
   useEffect(() => {
     if (error) {
       toast({
         title: "Error loading reservations",
-        description: error.message || "An unexpected error occurred.",
+        description: "Please ensure you have proper permissions to view reservations. If the problem persists, contact your administrator.",
         variant: "destructive",
       });
     }
   }, [error, toast]);
 
-  // Function to trigger refetch
-  const refreshReservations = () => {
-    queryClient.invalidateQueries({ queryKey: ['adminReservations'] });
-  };
-
   return {
     isLoading,
     reservations,
-    refreshReservations,
+    refreshReservations: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminReservations'] });
+    },
   };
 }
