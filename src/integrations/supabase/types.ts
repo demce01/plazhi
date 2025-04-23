@@ -261,6 +261,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_new_user: {
+        Args: {
+          user_email: string
+          user_password: string
+          user_role?: string
+          first_name?: string
+          last_name?: string
+          phone_number?: string
+        }
+        Returns: string
+      }
       get_available_sets: {
         Args: { target_beach_id: string; target_date: string }
         Returns: {

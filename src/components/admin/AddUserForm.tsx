@@ -56,44 +56,16 @@ export function AddUserForm({ onSuccess, defaultRole = "employee" }: AddUserForm
     setIsSubmitting(true);
     try {
       // Create the user with Supabase auth
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: data.email,
-        password: data.password,
-        email_confirm: true, // Auto-confirm email
-        user_metadata: {
-          name: data.name,
-          phone: data.phone,
-        },
+      const { data: authData, error: authError } = await supabase.rpc('create_new_user', {
+        user_email: data.email,
+        user_password: data.password,
+        user_role: data.role,
+        first_name: data.name,
+        phone_number: data.phone
       });
 
       if (authError) {
         throw new Error(authError.message);
-      }
-
-      // Set user role
-      if (authData.user) {
-        const { error: roleError } = await supabase.rpc('set_user_role', {
-          target_user_id: authData.user.id,
-          new_role: data.role,
-        });
-
-        if (roleError) {
-          throw new Error(roleError.message);
-        }
-
-        // Create client record in the clients table if needed
-        if (data.role === "client") {
-          const { error: clientError } = await supabase
-            .from("clients")
-            .insert({
-              user_id: authData.user.id,
-              phone: data.phone,
-            });
-
-          if (clientError) {
-            console.error("Error creating client record:", clientError);
-          }
-        }
       }
 
       toast({

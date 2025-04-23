@@ -24,7 +24,6 @@ export function useAdminUsers() {
 
       if (error) {
         console.error("Admin: Error listing users:", error);
-        // Check for specific permission error if needed
         if (error.code === 'P0001' || error.message.includes('Requires admin privileges')) { 
             throw new Error("You do not have permission to view users.");
         } else {
@@ -32,14 +31,7 @@ export function useAdminUsers() {
         }
       }
       
-      // Transform the data to match our expected type if needed
-      const transformedData = data?.map(user => ({
-        user_id: user.user_id,
-        email: user.email || null,
-        role: user.role || null
-      })) || [];
-      
-      return transformedData;
+      return data || [];
     } catch (error: any) {
       console.error("Error in fetchUsersAdmin:", error);
       throw error;
@@ -81,3 +73,4 @@ export function useAdminUsers() {
     refetch,
   };
 }
+
