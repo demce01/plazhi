@@ -71,12 +71,10 @@ export function useOnSiteReservation() {
           .eq('beach_id', selectedBeach.id);
 
         // Fetch all sets with their status using the RPC function
-        // Use explicit type from generated Database types if needed
         const setsWithStatusPromise = supabase.rpc('get_sets_with_status', {
           target_beach_id: selectedBeach.id,
           target_date: dateString
         });
-        // Type assertion if needed: as Promise<{ data: SetWithStatus[] | null; error: any }>
         
         const [zonesResult, setsWithStatusResult] = await Promise.all([zonesPromise, setsWithStatusPromise]);
 
@@ -86,9 +84,8 @@ export function useOnSiteReservation() {
 
         // Handle sets with status result
         if (setsWithStatusResult.error) throw setsWithStatusResult.error;
-        // Now Supabase types should know the return type of the RPC
         const allSetsWithStatus = setsWithStatusResult.data || []; 
-        setSets(allSetsWithStatus as Set[]); // Assert type if RPC return doesn't perfectly match base Set type
+        setSets(allSetsWithStatus as Set[]); 
 
       } catch (error: any) {
         console.error("Error fetching layout/sets:", error);
@@ -147,10 +144,6 @@ export function useOnSiteReservation() {
 
     setIsSubmitting(true);
     try {
-      // Use the admin/service_role client to bypass RLS policies
-      // This ensures employees can create reservations
-      const adminClient = supabase.auth.admin || supabase;
-      
       const totalAmount = selectedSets.reduce((sum, set) => sum + Number(set.price || 0), 0);
       
       const reservationDataToInsert = {
@@ -169,7 +162,6 @@ export function useOnSiteReservation() {
 
       console.log("Creating on-site reservation with data:", reservationDataToInsert);
 
-      // Using .from() with auth headers to bypass RLS
       const { data: reservation, error: reservationError } = await supabase
         .from("reservations")
         .insert(reservationDataToInsert)
@@ -234,4 +226,4 @@ export function useOnSiteReservation() {
     setGuestData: setGuestData as React.Dispatch<React.SetStateAction<GuestData | null>>,
     submitOnSiteReservation,
   };
-} 
+}
