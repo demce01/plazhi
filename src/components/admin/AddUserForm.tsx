@@ -61,21 +61,43 @@ export function AddUserForm({ onSuccess, defaultRole = "employee" }: AddUserForm
         name: data.name
       });
       
-      // Create the user with Supabase auth
-      const { data: authData, error: authError } = await supabase.rpc('create_new_user', {
-        user_email: data.email,
-        user_password: data.password,
-        user_role: data.role,
-        first_name: data.name,
-        phone_number: data.phone || null
+      // Use the Supabase admin API to create the user instead of the RPC function
+      const { data: authData, error: signUpError } = await supabase.auth.admin.createUser({
+        email: data.email,
+        password: data.password,
+        email_confirm: true,
+        user_metadata: {
+          full_name: data.name,
+          phone: data.phone || null
+        },
+        app_metadata: {
+          role: data.role
+        }
       });
 
-      if (authError) {
-        console.error("Error creating user:", authError);
-        throw new Error(authError.message);
+      if (signUpError) {
+        console.error("Error creating user:", signUpError);
+        throw new Error(signUpError.message);
       }
 
       console.log("User created successfully:", authData);
+      
+      // After user is created, update the clients table if needed
+      if (authData.user) {
+        const { error: clientError } = await supabase
+          .from('clients')
+          .upsert({
+            user_id: authData.user.id,
+            phone: data.phone || null,
+            first_name: data.name,
+            last_name: '' // Add a field for last name in the form if needed
+          });
+
+        if (clientError) {
+          console.warn("Error updating client data:", clientError);
+          // We don't throw here as the user has been created successfully
+        }
+      }
       
       toast({
         title: "User created successfully",
