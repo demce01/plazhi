@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -35,7 +36,7 @@ export default function AdminReservationDetail() {
            <AlertDescription>Could not load details for reservation ID {id}. It might not exist or there was a server error.</AlertDescription>
          </Alert>
          <Button variant="outline" asChild className="mt-4">
-            <Link to="/reservations">Back to Reservations</Link>
+            <Link to="/admin/reservations">Back to Reservations</Link>
           </Button>
        </div>
      );
@@ -55,7 +56,7 @@ export default function AdminReservationDetail() {
                 <p className="text-muted-foreground">Viewing details for Reservation ID: {formatReservationId(reservation.id)}</p>
             </div>
              <Button variant="outline" asChild>
-                 <Link to="/reservations">Back to Reservations List</Link>
+                 <Link to="/admin/reservations">Back to Reservations List</Link>
              </Button>
         </div>
 
