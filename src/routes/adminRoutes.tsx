@@ -32,6 +32,16 @@ export const adminRoutes = {
       ),
     },
     {
+      index: true,
+      element: (
+        <Suspense fallback={<LoadingSpinner />}>
+          <RoleProtectedRoute roles={["admin"]}>
+            <AdminDashboard />
+          </RoleProtectedRoute>
+        </Suspense>
+      ),
+    },
+    {
       path: "beaches",
       element: (
         <Suspense fallback={<LoadingSpinner />}>
