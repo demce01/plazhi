@@ -191,10 +191,11 @@ export function OnSiteReservationForm() {
 
               <VisualSetSelectionGrid
                 sets={sets}
+                zones={zones}
                 selectedZone={selectedZone}
                 selectedSets={selectedSets}
-                onSelectSet={handleSelectSet}
-                isLoading={isLoading}
+                onZoneSelect={handleZoneSelect}
+                onSetToggle={handleSelectSet}
               />
             </div>
 
