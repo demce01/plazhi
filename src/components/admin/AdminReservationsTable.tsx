@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { 
   Table, 
@@ -52,25 +53,37 @@ export function AdminReservationsTable({
     async function fetchAllReservationSets() {
       const ids = reservations.map((r) => r.id);
       if (ids.length === 0) return;
-      const { data, error } = await supabase
-        .from("reservation_sets")
-        .select(`
-          reservation_id,
-          set: set_id (
-            id, name,
-            zone:beach_id( name )
-          )
-        `)
-        .in("reservation_id", ids);
-      if (data) {
-        const byReservation: Record<string, any[]> = {};
-        data.forEach((rs: any) => {
-          if (!byReservation[rs.reservation_id]) byReservation[rs.reservation_id] = [];
-          byReservation[rs.reservation_id].push(rs);
-        });
-        setReservationSetsMap(byReservation);
+      
+      try {
+        const { data, error } = await supabase
+          .from("reservation_sets")
+          .select(`
+            reservation_id,
+            set: set_id (
+              id, name,
+              zone:beach_id( name )
+            )
+          `)
+          .in("reservation_id", ids);
+          
+        if (error) {
+          console.error("Error fetching reservation sets:", error);
+          return;
+        }
+        
+        if (data) {
+          const byReservation: Record<string, any[]> = {};
+          data.forEach((rs: any) => {
+            if (!byReservation[rs.reservation_id]) byReservation[rs.reservation_id] = [];
+            byReservation[rs.reservation_id].push(rs);
+          });
+          setReservationSetsMap(byReservation);
+        }
+      } catch (error) {
+        console.error("Error in fetchAllReservationSets:", error);
       }
     }
+    
     fetchAllReservationSets();
   }, [reservations]);
 

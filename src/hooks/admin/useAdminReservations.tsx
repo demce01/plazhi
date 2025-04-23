@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -14,7 +15,7 @@ export function useAdminReservations() {
   const queryClient = useQueryClient();
 
   const fetchReservationsAdmin = async (): Promise<ReservationWithBeachAdmin[]> => {
-    // RLS policy should ensure only admins can fetch all reservations
+    // RLS policy should ensure only admins/employees can fetch all reservations
     const { data, error } = await supabase
       .from("reservations")
       .select(`
@@ -70,4 +71,4 @@ export function useAdminReservations() {
     reservations,
     refreshReservations,
   };
-} 
+}
