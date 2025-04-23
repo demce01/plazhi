@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Table,
@@ -196,7 +195,7 @@ export function AdminUsersTable({
         <Card className="border-dashed border-primary/50 bg-primary/5">
           <CardHeader>
             <CardTitle className="text-lg">Create New User</CardTitle>
-            <CardDescription>Add a new user and assign them a role</CardDescription>
+            <CardDescription>Add a new user and assign them a role (including employee)</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col sm:flex-row gap-3">
