@@ -1,4 +1,5 @@
 
+
 import { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
@@ -38,6 +39,8 @@ export function RoleProtectedRoute({ children, roles }: RoleProtectedRouteProps)
       return <Navigate to="/" replace />;
     } else if (role === 'admin') {
       return <Navigate to="/admin" replace />;
+    } else if (role === 'employee') {
+      return <Navigate to="/admin/reservations" replace />;
     }
     return <Navigate to="/" replace />;
   }

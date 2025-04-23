@@ -1,4 +1,5 @@
 
+
 import { Beach } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 

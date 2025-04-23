@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { useAuth } from "@/contexts/auth";
 import MyReservations from "./MyReservations";
@@ -19,7 +20,7 @@ export default function ReservationsRouter() {
     );
   }
 
-  if (role === 'admin') {
+  if (role === 'admin' || role === 'employee') {
     return (
       <div className="container mx-auto p-6 max-w-7xl space-y-8">
         <ReservationManagementTab beaches={beaches} />
