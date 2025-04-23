@@ -61,14 +61,16 @@ export function AddUserForm({ onSuccess, defaultRole = "employee" }: AddUserForm
         name: data.name
       });
       
-      // Use the create_new_user RPC function which is set up with the necessary permissions
-      const { data: authData, error: signUpError } = await supabase.rpc('create_new_user', {
-        user_email: data.email,
-        user_password: data.password,
-        user_role: data.role,
-        first_name: data.name,
-        last_name: '', // We could add this field to the form if needed
-        phone_number: data.phone || null
+      // First, sign up the user using the auth API
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            role: data.role,
+            full_name: data.name
+          }
+        }
       });
 
       if (signUpError) {
@@ -77,6 +79,34 @@ export function AddUserForm({ onSuccess, defaultRole = "employee" }: AddUserForm
       }
 
       console.log("User created successfully:", authData);
+      
+      // Now, update the role of the user using the set_user_role RPC function
+      if (authData.user) {
+        const { error: roleError } = await supabase.rpc('set_user_role', {
+          target_user_id: authData.user.id,
+          new_role: data.role
+        });
+
+        if (roleError) {
+          console.warn("Error setting user role:", roleError);
+          // Still continue as the user has been created
+        }
+
+        // Update the client information
+        const { error: clientError } = await supabase
+          .from('clients')
+          .upsert({
+            user_id: authData.user.id,
+            phone: data.phone || null,
+            first_name: data.name,
+            last_name: ''
+          });
+
+        if (clientError) {
+          console.warn("Error updating client data:", clientError);
+          // We don't throw here as the user has been created successfully
+        }
+      }
       
       toast({
         title: "User created successfully",

@@ -101,22 +101,37 @@ export function AdminUsersTable({
     try {
       console.log("Creating new user:", newUserEmail, "Role:", newUserRole);
       
-      // Use the RPC function to create a new user
-      const { data, error } = await supabase.rpc('create_new_user', {
-        user_email: newUserEmail.trim(),
-        user_password: 'Temp' + Math.random().toString(36).slice(-8) + '!', // Generate a secure temporary password
-        user_role: newUserRole,
-        first_name: 'New User', // Default name
-        last_name: '',
-        phone_number: null
+      // First, sign up the user using the auth API with a temporary password
+      const tempPassword = 'Temp' + Math.random().toString(36).slice(-8) + '!';
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+        email: newUserEmail.trim(),
+        password: tempPassword,
+        options: {
+          data: {
+            role: newUserRole
+          }
+        }
       });
 
-      if (error) {
-        console.error("Create user error:", error);
-        throw new Error(error.message || "Failed to create user");
+      if (signUpError) {
+        console.error("Create user error:", signUpError);
+        throw new Error(signUpError.message || "Failed to create user");
       }
 
-      console.log("User created:", data);
+      // Set the role explicitly
+      if (authData.user) {
+        const { error: roleError } = await supabase.rpc('set_user_role', {
+          target_user_id: authData.user.id,
+          new_role: newUserRole
+        });
+
+        if (roleError) {
+          console.warn("Error setting user role:", roleError);
+          // Continue anyway as user is created
+        }
+      }
+
+      console.log("User created:", authData);
       sonnerToast.success(`User ${newUserEmail} created with role ${newUserRole}`);
       setNewUserEmail('');
       setShowAddUser(false);
