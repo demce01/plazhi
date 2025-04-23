@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { Loader2 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { UserManagementTab } from "@/components/admin/UserManagementTab";
 
 export default function AdminDashboard() {
   const { userSession } = useAuth();
@@ -32,11 +31,6 @@ export default function AdminDashboard() {
     return null; // Admin check is already handled by route protection
   }
 
-  return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        <UserManagementTab />
-      </div>
-    </DashboardLayout>
-  );
+  // The UserManagementTab will be rendered by the DashboardLayout
+  return <DashboardLayout />;
 }

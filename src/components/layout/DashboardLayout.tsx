@@ -1,10 +1,11 @@
 
 import { useState, ReactNode } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { PanelLeftOpen, PanelLeftClose } from "lucide-react";
 import { DashboardSidebar } from "./DashboardSidebar";
+import { UserManagementTab } from "@/components/admin/UserManagementTab";
 
 interface DashboardLayoutProps {
   children?: ReactNode;
@@ -12,6 +13,10 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const location = useLocation();
+  
+  // Determine if we're on the admin users page
+  const isAdminUsers = location.pathname === "/admin/users" || location.pathname === "/admin";
 
   return (
     <div className="min-h-screen flex bg-gray-50">
@@ -50,7 +55,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </div>
         <div className="p-6 max-w-7xl mx-auto">
-          {children || <Outlet />}
+          {isAdminUsers ? (
+            <UserManagementTab />
+          ) : (
+            children || <Outlet />
+          )}
         </div>
       </div>
     </div>
