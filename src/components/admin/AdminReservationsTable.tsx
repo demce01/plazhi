@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { 
   Table, 
@@ -17,17 +16,14 @@ import { useToast } from "@/hooks/use-toast";
 import { ReservationWithBeachAdmin } from "@/hooks/admin/useAdminReservations";
 import { supabase } from "@/integrations/supabase/client";
 
-// Helper to get zone/set string
 const getZoneSetString = (reservation_sets: any[] | undefined) => {
   if (!reservation_sets || reservation_sets.length === 0) return "—";
   if (reservation_sets.length === 1) {
     const rs = reservation_sets[0];
-    // Prefer zone name, then set name
     if (rs.set?.zone?.name) return `${rs.set.zone.name} – ${rs.set.name}`;
     if (rs.set?.name) return rs.set.name;
     return "-";
   }
-  // Multiple sets: just say "(multiple)"
   return "(multiple)";
 };
 
@@ -50,10 +46,8 @@ export function AdminReservationsTable({
   const { toast } = useToast();
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  // Track reservation sets for each reservation
   const [reservationSetsMap, setReservationSetsMap] = React.useState<Record<string, any[]>>({});
 
-  // Fetch sets for each reservation on mount
   React.useEffect(() => {
     async function fetchAllReservationSets() {
       const ids = reservations.map((r) => r.id);
@@ -69,7 +63,6 @@ export function AdminReservationsTable({
         `)
         .in("reservation_id", ids);
       if (data) {
-        // Group by reservation_id
         const byReservation: Record<string, any[]> = {};
         data.forEach((rs: any) => {
           if (!byReservation[rs.reservation_id]) byReservation[rs.reservation_id] = [];
@@ -96,7 +89,6 @@ export function AdminReservationsTable({
     }
   };
 
-  // Action handlers
   const handleCheckIn = async (reservation: ReservationWithBeachAdmin) => {
     try {
       setUpdatingId(reservation.id);
@@ -132,7 +124,6 @@ export function AdminReservationsTable({
       toast({
         title: "Reservation cancelled",
         description: `${reservation.guest_name}'s reservation cancelled.`,
-        // Fixed: Changed "warning" to "destructive" since "warning" isn't an available variant
         variant: "destructive"
       });
       onActionComplete?.();

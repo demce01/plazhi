@@ -10,6 +10,7 @@ const AdminDashboard = lazy(() => import("@/pages/admin/Dashboard"));
 const BeachesManagement = lazy(() => import("@/pages/admin/BeachesManagement"));
 const ContentManagement = lazy(() => import("@/pages/admin/ContentManagement"));
 const ReservationManagementTab = lazy(() => import("@/pages/admin/ReservationManagementTab"));
+const AdminReservationDetail = lazy(() => import("@/pages/admin/AdminReservationDetail"));
 
 // Create a wrapper component to pass beaches to ReservationManagementTab
 const ReservationsPage = () => {
@@ -57,6 +58,16 @@ export const adminRoutes = {
         <Suspense fallback={<LoadingSpinner />}>
           <RoleProtectedRoute roles={["admin"]}>
             <ReservationsPage />
+          </RoleProtectedRoute>
+        </Suspense>
+      ),
+    },
+    {
+      path: "reservations/:id",
+      element: (
+        <Suspense fallback={<LoadingSpinner />}>
+          <RoleProtectedRoute roles={["admin"]}>
+            <AdminReservationDetail />
           </RoleProtectedRoute>
         </Suspense>
       ),
