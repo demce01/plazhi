@@ -92,14 +92,13 @@ export function AddUserForm({ onSuccess, defaultRole = "employee" }: AddUserForm
           // Still continue as the user has been created
         }
 
-        // Update the client information
+        // Update the client information - Fix: Use phone and name fields that match the database schema
         const { error: clientError } = await supabase
           .from('clients')
           .upsert({
             user_id: authData.user.id,
             phone: data.phone || null,
-            first_name: data.name,
-            last_name: ''
+            name: data.name
           });
 
         if (clientError) {

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Table,
@@ -129,6 +128,20 @@ export function AdminUsersTable({
           console.warn("Error setting user role:", roleError);
           // Continue anyway as user is created
         }
+        
+        // Update the client data with correct field names
+        const { error: clientError } = await supabase
+          .from('clients')
+          .upsert({
+            user_id: authData.user.id,
+            name: 'New User',
+            phone: null
+          });
+        
+        if (clientError) {
+          console.warn("Error updating client data:", clientError);
+          // Continue anyway as user is created
+        }
       }
 
       console.log("User created:", authData);
@@ -148,7 +161,6 @@ export function AdminUsersTable({
     }
   };
 
-  // Format the date string or return a placeholder
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "N/A";
     try {
@@ -159,7 +171,6 @@ export function AdminUsersTable({
     }
   };
 
-  // Filter users based on search term and role filter
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.email?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
