@@ -1,4 +1,5 @@
 
+
 import { useAuth } from "@/contexts/auth";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -30,10 +31,10 @@ export function Header() {
         );
       }
       
-      if (role === 'admin') {
+      if (role === 'admin' || role === 'employee') {
         links.push(
-          <Link key="dashboard" to="/dashboard" className="text-gray-500 hover:text-gray-900 font-medium">
-            Admin Dashboard
+          <Link key="dashboard" to={role === 'admin' ? "/dashboard" : "/admin/reservations"} className="text-gray-500 hover:text-gray-900 font-medium">
+            {role === 'admin' ? 'Admin Dashboard' : 'Management'}
           </Link>
         );
       }

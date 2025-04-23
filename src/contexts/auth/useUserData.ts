@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { UserRole, UserSession } from "@/types";
 
@@ -12,10 +13,19 @@ export async function fetchUserData(userId: string, userEmail: string | undefine
     let role: UserRole = 'client';
     let clientId = null;
     
-    // Check if user is an admin
-    if (appMetadata && appMetadata.role === 'admin') {
-      role = 'admin';
-    } else {
+    // Check role from app_metadata
+    if (appMetadata && appMetadata.role) {
+      // Handle all valid role types
+      if (appMetadata.role === 'admin') {
+        role = 'admin';
+      } else if (appMetadata.role === 'employee') {
+        role = 'employee';
+      }
+      // client role is the default if no match
+    }
+    
+    // Only fetch client data if the role is 'client'
+    if (role === 'client') {
       // Get client data
       const { data: clientData, error: clientError } = await supabase
         .from('clients')
@@ -29,6 +39,8 @@ export async function fetchUserData(userId: string, userEmail: string | undefine
         clientId = clientData.id;
       }
     }
+    
+    console.log(`User ${userId} has role: ${role}`);
     
     return {
       user: {
