@@ -132,7 +132,8 @@ export function AdminReservationsTable({
       toast({
         title: "Reservation cancelled",
         description: `${reservation.guest_name}'s reservation cancelled.`,
-        variant: "warning"
+        // Fixed: Changed "warning" to "destructive" since "warning" isn't an available variant
+        variant: "destructive"
       });
       onActionComplete?.();
     } catch (error) {
