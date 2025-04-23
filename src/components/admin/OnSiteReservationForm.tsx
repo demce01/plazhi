@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,19 +7,8 @@ import { Loader2, CalendarIcon, MapPin, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Calendar } from "@/components/ui/calendar";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import {
   Popover,
   PopoverContent,
@@ -31,11 +19,9 @@ import { useOnSiteReservation } from "@/hooks/admin/useOnSiteReservation";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { VisualSetSelectionGrid } from "@/components/admin/VisualSetSelectionGrid";
 
-// Form validation schema
+// Simplified form validation schema
 const formSchema = z.object({
-  guestName: z.string().min(2, "Guest name is required"),
-  guestPhone: z.string().min(5, "Phone number is required"),
-  guestEmail: z.string().email("Invalid email").optional().or(z.literal("")),
+  guestName: z.literal("On-Site Reservation").optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -65,9 +51,7 @@ export function OnSiteReservationForm() {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      guestName: "",
-      guestPhone: "",
-      guestEmail: "",
+      guestName: "On-Site Reservation",
     },
   });
 
@@ -91,9 +75,9 @@ export function OnSiteReservationForm() {
     }
 
     setGuestData({
-      name: data.guestName,
-      phone: data.guestPhone,
-      email: data.guestEmail || undefined,
+      name: "On-Site Reservation",
+      phone: "", // Empty phone for on-site reservations
+      email: undefined,
     });
 
     await submitOnSiteReservation();
@@ -255,79 +239,22 @@ export function OnSiteReservationForm() {
         </div>
       )}
 
-      <Separator />
-
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium">4. Guest Information</h3>
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-4"
-          >
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="guestName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Guest Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="John Doe" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="guestPhone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone Number</FormLabel>
-                    <FormControl>
-                      <Input placeholder="+1234567890" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <FormField
-              control={form.control}
-              name="guestEmail"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email (Optional)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="email"
-                      placeholder="guest@example.com"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="py-4">
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isSubmitting || isLoading}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating Reservation...
-                  </>
-                ) : (
-                  "Create On-Site Reservation"
-                )}
-              </Button>
-            </div>
-          </form>
-        </Form>
+      <div className="py-4">
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={isSubmitting || isLoading}
+          onClick={form.handleSubmit(onSubmit)}
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Creating Reservation...
+            </>
+          ) : (
+            "Create On-Site Reservation"
+          )}
+        </Button>
       </div>
     </div>
   );
