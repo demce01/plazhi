@@ -19,7 +19,7 @@ export function useAdminUsers() {
 
   const fetchUsersAdmin = async (): Promise<AdminManagedUser[]> => {
     try {
-      // RLS policy on the function handles authorization
+      // Cast the return type to match what the function actually returns
       const { data, error } = await supabase.rpc('list_all_users');
 
       if (error) {
@@ -31,7 +31,15 @@ export function useAdminUsers() {
             throw new Error(error.message || "Failed to list users");
         }
       }
-      return data || [];
+      
+      // Transform the data to match our expected type if needed
+      const transformedData = data?.map(user => ({
+        user_id: user.user_id,
+        email: user.email || null,
+        role: user.role || null
+      })) || [];
+      
+      return transformedData;
     } catch (error: any) {
       console.error("Error in fetchUsersAdmin:", error);
       throw error;
