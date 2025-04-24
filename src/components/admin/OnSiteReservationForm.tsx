@@ -16,10 +16,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { useVisualSetSelection } from "@/hooks/admin/useVisualSetSelection";
+import { VisualSetSelectionGrid } from "@/components/admin/VisualSetSelectionGrid";
 import { useOnSiteReservation } from "@/hooks/admin/useOnSiteReservation";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { VisualSetSelectionGrid } from "@/components/admin/VisualSetSelectionGrid";
 
 // Simplified form validation schema
 const formSchema = z.object({

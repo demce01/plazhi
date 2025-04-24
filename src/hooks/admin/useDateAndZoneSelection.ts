@@ -13,6 +13,10 @@ export function useDateAndZoneSelection() {
   const [selectedZone, setSelectedZone] = useState<Zone | null>(null);
   const [isLayoutLoading, setIsLayoutLoading] = useState(false);
 
+  const handleZoneSelect = (zone: Zone | null) => {
+    setSelectedZone(zone);
+  };
+
   const fetchLayoutAndSetStatuses = async (beach: Beach, date: Date) => {
     setIsLayoutLoading(true);
     const dateString = format(date, 'yyyy-MM-dd');
@@ -60,6 +64,7 @@ export function useDateAndZoneSelection() {
     selectedZone,
     isLayoutLoading,
     setSelectedZone,
-    fetchLayoutAndSetStatuses
+    fetchLayoutAndSetStatuses,
+    handleZoneSelect
   };
 }

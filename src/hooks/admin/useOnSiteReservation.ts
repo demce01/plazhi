@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { adminSupabase } from '@/integrations/supabase/admin-client';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -38,7 +38,8 @@ export function useOnSiteReservation() {
     selectedZone,
     isLayoutLoading,
     setSelectedZone,
-    fetchLayoutAndSetStatuses
+    fetchLayoutAndSetStatuses,
+    handleZoneSelect
   } = useDateAndZoneSelection();
 
   const {
@@ -51,15 +52,11 @@ export function useOnSiteReservation() {
   // Use fetchLayoutAndSetStatuses when beach changes
   useEffect(() => {
     if (!selectedBeach || !selectedDate) {
-      setZones([]);
-      setSets([]); 
-      setSelectedZone(null);
-      setSelectedSets([]); 
       return;
     }
 
     fetchLayoutAndSetStatuses(selectedBeach, selectedDate);
-  }, [selectedBeach, selectedDate]);
+  }, [selectedBeach, selectedDate, fetchLayoutAndSetStatuses]);
 
   const submitOnSiteReservation = useCallback(async () => {
     if (!selectedBeach || selectedSets.length === 0 || !guestData) {
@@ -154,5 +151,6 @@ export function useOnSiteReservation() {
     handleRemoveSet,
     setGuestData,
     submitOnSiteReservation,
+    handleZoneSelect
   };
 }

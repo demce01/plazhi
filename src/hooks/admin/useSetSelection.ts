@@ -7,9 +7,11 @@ export function useSetSelection() {
   const { toast } = useToast();
   const [selectedSets, setSelectedSets] = useState<Set[]>([]);
 
-  const handleSelectSet = (set: Set, availableSets: Set[]) => {
-    const setInState = availableSets.find(s => s.id === set.id);
-    if (setInState && (setInState as any).status === 'reserved') { 
+  // Updated to match the expected signature by removing the second parameter
+  const handleSelectSet = (set: Set) => {
+    // We'll retrieve the status from the set itself
+    const status = (set as any).status;
+    if (status === 'reserved') { 
       toast({ 
         title: "Set Reserved", 
         description: `${set.name} is already reserved for this date.`, 
