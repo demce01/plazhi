@@ -167,14 +167,15 @@ export function useReservationSubmit(
         return false;
       }
       
-      // Create the reservation
+      // Create the reservation - IMPORTANT: Don't try to access the user table at all
       const totalAmount = selectedSets.reduce(
         (sum, set) => sum + Number(set.price || 0), 
         0
       );
       
-      const reservationDataToInsert = {
-        beach_id: beach?.id,
+      // Define reservation data object explicitly without any possible reference to auth.users
+      const reservationData = {
+        beach_id: beach.id,
         guest_name: guestData.name,
         guest_phone: guestData.phone,
         guest_email: guestData.email || null,
@@ -183,11 +184,12 @@ export function useReservationSubmit(
         status: "confirmed",
         payment_status: "completed",
       };
-      console.log('[handleGuestReservation] Inserting data:', JSON.stringify(reservationDataToInsert));
+      console.log('[handleGuestReservation] Inserting data:', JSON.stringify(reservationData));
 
+      // Insert the reservation with explicit column names to avoid any auth references
       const { data: reservation, error: reservationError } = await supabase
         .from("reservations")
-        .insert(reservationDataToInsert)
+        .insert(reservationData)
         .select()
         .single();
       
