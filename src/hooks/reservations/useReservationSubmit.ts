@@ -167,29 +167,29 @@ export function useReservationSubmit(
         return false;
       }
       
-      // Create the reservation - IMPORTANT: Don't try to access the user table at all
+      // Calculate total amount
       const totalAmount = selectedSets.reduce(
         (sum, set) => sum + Number(set.price || 0), 
         0
       );
       
-      // Define reservation data object explicitly without any possible reference to auth.users
-      const reservationData = {
-        beach_id: beach.id,
-        guest_name: guestData.name,
-        guest_phone: guestData.phone,
-        guest_email: guestData.email || null,
-        reservation_date: format(selectedDate, "yyyy-MM-dd"),
-        payment_amount: totalAmount,
-        status: "confirmed",
-        payment_status: "completed",
-      };
-      console.log('[handleGuestReservation] Inserting data:', JSON.stringify(reservationData));
-
-      // Insert the reservation with explicit column names to avoid any auth references
+      // For guest reservations, create without any client_id field
+      // Ensuring we use a completely separate object to avoid any potential references
+      console.log('[handleGuestReservation] Creating guest reservation for beach:', beach.id);
+      
+      // Create the reservation with a completely new object (no references to auth)
       const { data: reservation, error: reservationError } = await supabase
         .from("reservations")
-        .insert(reservationData)
+        .insert({
+          beach_id: beach.id,
+          guest_name: guestData.name,
+          guest_phone: guestData.phone,
+          guest_email: guestData.email || null,
+          reservation_date: format(selectedDate, "yyyy-MM-dd"),
+          payment_amount: totalAmount,
+          status: "confirmed",
+          payment_status: "completed"
+        })
         .select()
         .single();
       
