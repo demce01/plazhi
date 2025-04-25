@@ -49,31 +49,37 @@ export function useBeachDetails(beachId: string | undefined) {
     staleTime: 15 * 60 * 1000,
   });
 
-  // Fetch Sets using the RPC to get status directly - now with SECURITY DEFINER
+  // Fetch Sets using the RPC with enhanced logging
   const { data: sets = [], isLoading: isLoadingSets, error: setsError } = useQuery<Set[], Error>({
     queryKey: ['beachSetsWithStatus', beachId, formatDateKey(selectedDate)],
     queryFn: async () => {
       if (!beachId) return [];
       const dateString = formatDateKey(selectedDate);
       
-      // Call the RPC function - this should now work with our updated SECURITY DEFINER function
-      const { data, error } = await supabase.rpc('get_sets_with_status', { 
-        target_beach_id: beachId,
-        target_date: dateString
-      });
-      
-      // Log the raw RPC response
-      console.log(`[useBeachDetails] RPC response for ${dateString}:`, { data, error });
+      try {
+        // Call the RPC function with improved error handling
+        const { data, error } = await supabase.rpc('get_sets_with_status', { 
+          target_beach_id: beachId,
+          target_date: dateString
+        });
+        
+        // Log the raw RPC response for debugging
+        console.log(`[useBeachDetails] RPC response for ${dateString}:`, { data, error });
 
-      if (error) {
-        console.error("RPC get_sets_with_status error:", error);
-        throw new Error(error.message || "Failed to fetch set availability");
+        if (error) {
+          console.error("RPC get_sets_with_status error:", error);
+          throw new Error(error.message || "Failed to fetch set availability");
+        }
+        
+        return (data as Set[]) || []; 
+      } catch (err) {
+        console.error("Exception in RPC call:", err);
+        throw err;
       }
-      // The RPC result should match the structure, potentially needs casting if types aren't perfect
-      return (data as Set[]) || []; 
     },
     enabled: !!beachId, 
     staleTime: 1 * 60 * 1000, // Keep relatively short stale time for availability
+    retry: 1, // Only retry once on failure
   });
 
   // Combined loading state
