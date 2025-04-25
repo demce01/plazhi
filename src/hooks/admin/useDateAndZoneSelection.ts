@@ -22,6 +22,7 @@ export function useDateAndZoneSelection() {
     const dateString = format(date, 'yyyy-MM-dd');
 
     try {
+      // Use adminSupabase for admin operations
       const zonesPromise = supabase
         .from('zones')
         .select('*')

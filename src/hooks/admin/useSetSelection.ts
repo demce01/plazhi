@@ -7,7 +7,6 @@ export function useSetSelection() {
   const { toast } = useToast();
   const [selectedSets, setSelectedSets] = useState<Set[]>([]);
 
-  // Updated to match the expected signature by removing the second parameter
   const handleSelectSet = (set: Set) => {
     // We'll retrieve the status from the set itself
     const status = (set as any).status;
