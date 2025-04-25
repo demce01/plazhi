@@ -124,6 +124,7 @@ export function useReservationSubmit(
     }
   };
 
+  // Completely separate guest reservation function with no auth references
   const handleGuestReservation = async (guestData: {
     name: string;
     phone: string;
@@ -144,7 +145,8 @@ export function useReservationSubmit(
     
     try {
       setIsProcessing(true);
-      console.log("Creating guest reservation with data:", guestData);
+      // Avoid any reference to auth
+      console.log("Creating guest reservation with data:", { ...guestData, beach_id: beach.id });
       
       // Check set availability again before proceeding
       const selectedSetIds = selectedSets.map(s => s.id);
@@ -173,23 +175,24 @@ export function useReservationSubmit(
         0
       );
       
-      // For guest reservations, create without any client_id field
-      // Ensuring we use a completely separate object to avoid any potential references
-      console.log('[handleGuestReservation] Creating guest reservation for beach:', beach.id);
+      // Define guest reservation explicitly with only the fields we need
+      const guestReservationData = {
+        beach_id: beach.id,
+        guest_name: guestData.name,
+        guest_phone: guestData.phone,
+        guest_email: guestData.email || null,
+        reservation_date: format(selectedDate, "yyyy-MM-dd"),
+        payment_amount: totalAmount,
+        status: "confirmed",
+        payment_status: "completed"
+      };
       
-      // Create the reservation with a completely new object (no references to auth)
+      console.log('[handleGuestReservation] Creating guest reservation:', guestReservationData);
+      
+      // Insert the reservation with explicit fields to avoid any auth references
       const { data: reservation, error: reservationError } = await supabase
         .from("reservations")
-        .insert({
-          beach_id: beach.id,
-          guest_name: guestData.name,
-          guest_phone: guestData.phone,
-          guest_email: guestData.email || null,
-          reservation_date: format(selectedDate, "yyyy-MM-dd"),
-          payment_amount: totalAmount,
-          status: "confirmed",
-          payment_status: "completed"
-        })
+        .insert(guestReservationData)
         .select()
         .single();
       
