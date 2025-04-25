@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Beach, Zone, Set, Database } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,14 +49,14 @@ export function useBeachDetails(beachId: string | undefined) {
     staleTime: 15 * 60 * 1000,
   });
 
-  // Fetch Sets using the RPC to get status directly
+  // Fetch Sets using the RPC to get status directly - now with SECURITY DEFINER
   const { data: sets = [], isLoading: isLoadingSets, error: setsError } = useQuery<Set[], Error>({
     queryKey: ['beachSetsWithStatus', beachId, formatDateKey(selectedDate)],
     queryFn: async () => {
       if (!beachId) return [];
       const dateString = formatDateKey(selectedDate);
       
-      // Call the RPC function
+      // Call the RPC function - this should now work with our updated SECURITY DEFINER function
       const { data, error } = await supabase.rpc('get_sets_with_status', { 
         target_beach_id: beachId,
         target_date: dateString

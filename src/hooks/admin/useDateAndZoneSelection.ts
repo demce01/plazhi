@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -13,16 +13,16 @@ export function useDateAndZoneSelection() {
   const [selectedZone, setSelectedZone] = useState<Zone | null>(null);
   const [isLayoutLoading, setIsLayoutLoading] = useState(false);
 
-  const handleZoneSelect = (zone: Zone | null) => {
+  const handleZoneSelect = useCallback((zone: Zone | null) => {
     setSelectedZone(zone);
-  };
+  }, []);
 
-  const fetchLayoutAndSetStatuses = async (beach: Beach, date: Date) => {
+  const fetchLayoutAndSetStatuses = useCallback(async (beach: Beach, date: Date) => {
     setIsLayoutLoading(true);
     const dateString = format(date, 'yyyy-MM-dd');
 
     try {
-      // Use adminSupabase for admin operations
+      // Use regular supabase client since we've updated the get_sets_with_status function with SECURITY DEFINER
       const zonesPromise = supabase
         .from('zones')
         .select('*')
@@ -55,7 +55,7 @@ export function useDateAndZoneSelection() {
       setIsLayoutLoading(false);
       setSelectedZone(null); 
     }
-  };
+  }, [toast]);
 
   return {
     selectedDate,
