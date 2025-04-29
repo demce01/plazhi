@@ -5,7 +5,8 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { PanelLeftOpen, PanelLeftClose } from "lucide-react";
 import { DashboardSidebar } from "./DashboardSidebar";
-import { UserManagementTab } from "@/components/admin/UserManagementTab";
+import { useAuth } from "@/contexts/auth";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 interface DashboardLayoutProps {
   children?: ReactNode;
@@ -14,10 +15,9 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const location = useLocation();
+  const { userSession } = useAuth();
+  const { user, role } = userSession;
   
-  // Determine if we're on the admin users page
-  const isAdminUsers = location.pathname === "/admin/users" || location.pathname === "/admin";
-
   return (
     <div className="min-h-screen flex bg-gray-50">
       {/* Sidebar */}
@@ -51,15 +51,25 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               )}
             </Button>
             <h1 className="text-xl font-semibold text-center">BeachEase CMS</h1>
-            <div className="w-10"></div> {/* Spacer for alignment */}
+            
+            {/* User information display */}
+            {user && (
+              <div className="flex items-center gap-2">
+                <div className="text-right mr-2">
+                  <p className="text-sm font-medium">{user.email}</p>
+                  <p className="text-xs text-muted-foreground capitalize">{role}</p>
+                </div>
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                    {user.email ? user.email.substring(0, 2).toUpperCase() : "U"}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+            )}
           </div>
         </div>
         <div className="p-6 max-w-7xl mx-auto">
-          {isAdminUsers ? (
-            <UserManagementTab />
-          ) : (
-            children || <Outlet />
-          )}
+          {children || <Outlet />}
         </div>
       </div>
     </div>

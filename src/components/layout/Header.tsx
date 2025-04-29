@@ -1,10 +1,16 @@
 
-
 import { useAuth } from "@/contexts/auth";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { PanelLeftOpen, PanelLeftClose } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
-export function Header() {
+interface HeaderProps {
+  toggleSidebar: () => void;
+  isSidebarOpen: boolean;
+}
+
+export function Header({ toggleSidebar, isSidebarOpen }: HeaderProps) {
   const { userSession, signOut } = useAuth();
   const { user, role } = userSession;
 
@@ -47,7 +53,19 @@ export function Header() {
     <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
-          <div className="flex-shrink-0 flex items-center">
+          <div className="flex items-center">
+            <Button
+              variant="outline"
+              size="icon"
+              className="mr-4"
+              onClick={toggleSidebar}
+            >
+              {isSidebarOpen ? (
+                <PanelLeftClose className="h-4 w-4" />
+              ) : (
+                <PanelLeftOpen className="h-4 w-4" />
+              )}
+            </Button>
             <Link to="/" className="text-2xl font-bold text-primary">
               BeachEase
             </Link>
@@ -58,9 +76,15 @@ export function Header() {
           <div className="flex items-center">
             {user ? (
               <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-600">
-                  {user.email} {role && `(${role})`}
-                </span>
+                <div className="text-right mr-2 hidden md:block">
+                  <p className="text-sm font-medium">{user.email}</p>
+                  <p className="text-xs text-muted-foreground capitalize">{role}</p>
+                </div>
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                    {user.email ? user.email.substring(0, 2).toUpperCase() : "U"}
+                  </AvatarFallback>
+                </Avatar>
                 <Button variant="outline" onClick={() => signOut()}>
                   Sign Out
                 </Button>
