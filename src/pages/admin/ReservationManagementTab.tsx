@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { useAdminReservations, ReservationWithBeachAdmin } from "@/hooks/admin/useAdminReservations";
 import { AdminReservationsTable } from "@/components/admin/AdminReservationsTable";
@@ -11,11 +12,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { FilterX, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface ReservationManagementTabProps {
+interface AdminOutletContext {
   beaches: Beach[];
 }
 
-export default function ReservationManagementTab({ beaches = [] }: ReservationManagementTabProps) {
+export default function ReservationManagementTab() {
+  // Get beaches from outlet context
+  const { beaches = [] } = useOutletContext<AdminOutletContext>();
   const { isLoading, reservations, refreshReservations } = useAdminReservations();
   
   // Filter states
@@ -107,7 +110,7 @@ export default function ReservationManagementTab({ beaches = [] }: ReservationMa
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Beaches</SelectItem>
-                    {beaches && beaches.map((beach) => (
+                    {beaches.map((beach) => (
                       <SelectItem key={beach.id} value={beach.id}>
                         {beach.name}
                       </SelectItem>

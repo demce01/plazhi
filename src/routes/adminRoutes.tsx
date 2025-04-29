@@ -2,6 +2,8 @@
 import { lazy, Suspense } from "react";
 import { RoleProtectedRoute } from "@/components/auth/RoleProtectedRoute";
 import { LoadingSpinner } from "./LoadingSpinner";
+import { useAdminBeachList } from "@/hooks/admin/useAdminBeachList";
+import { Outlet } from "react-router-dom";
 
 // Lazy-loaded components
 const AdminDashboard = lazy(() => import("@/pages/admin/Dashboard"));
@@ -13,9 +15,20 @@ const AdminReservationDetail = lazy(() => import("@/pages/admin/AdminReservation
 const ReservationManagementTab = lazy(() => import("@/pages/admin/ReservationManagementTab"));
 const ReservationsDashboard = lazy(() => import("@/pages/admin/ReservationsDashboard"));
 
+// Admin layout component that provides common context like beaches to all child routes
+const AdminLayout = () => {
+  const { beaches } = useAdminBeachList();
+  
+  return (
+    <RoleProtectedRoute roles={["admin", "employee"]}>
+      <Outlet context={{ beaches }} />
+    </RoleProtectedRoute>
+  );
+};
+
 export const adminRoutes = {
   path: "admin",
-  element: <RoleProtectedRoute allowedRoles={["admin", "employee"]} />,
+  element: <AdminLayout />,
   children: [
     {
       index: true,

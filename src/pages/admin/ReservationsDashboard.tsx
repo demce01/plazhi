@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { useOutletContext } from "react-router-dom";
 import { useAdminReservations } from "@/hooks/admin/useAdminReservations";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { 
@@ -21,9 +22,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { LaptopIcon, UserIcon } from "lucide-react";
+import { Beach } from "@/types";
+
+interface AdminOutletContext {
+  beaches: Beach[];
+}
 
 export default function ReservationsDashboard() {
   const { isLoading, reservations } = useAdminReservations();
+  const { beaches = [] } = useOutletContext<AdminOutletContext>();
   const [activeTab, setActiveTab] = useState("all");
 
   // Group reservations - online vs. onsite

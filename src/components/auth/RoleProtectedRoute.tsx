@@ -1,6 +1,6 @@
 
 import { ReactNode } from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate, useLocation, useOutletContext } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { UserRole } from "@/types";
 import { Loader2 } from "lucide-react";
