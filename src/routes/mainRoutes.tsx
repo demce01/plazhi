@@ -12,6 +12,8 @@ const BeachReservation = lazy(() => import("@/pages/beaches/BeachReservation"));
 const ReservationSuccess = lazy(() => import("@/pages/beaches/ReservationSuccess"));
 const UserReservations = lazy(() => import("@/pages/user/UserReservations"));
 const UserProfile = lazy(() => import("@/pages/user/UserProfile"));
+const ReservationDetail = lazy(() => import("@/pages/reservations/ReservationDetail"));
+const ReservationsRouter = lazy(() => import("@/pages/reservations/ReservationsRouter"));
 
 export const mainRoutes = {
   path: "/",
@@ -56,6 +58,22 @@ export const mainRoutes = {
       element: (
         <Suspense fallback={<LoadingSpinner />}>
           <ReservationSuccess />
+        </Suspense>
+      ),
+    },
+    {
+      path: "reservations",
+      element: (
+        <Suspense fallback={<LoadingSpinner />}>
+          <ReservationsRouter />
+        </Suspense>
+      ),
+    },
+    {
+      path: "reservations/:id",
+      element: (
+        <Suspense fallback={<LoadingSpinner />}>
+          <ReservationDetail />
         </Suspense>
       ),
     },

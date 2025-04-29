@@ -106,9 +106,9 @@ export function useReservationSubmit(
         description: `Your reservation has been created with ID: ${reservation.id.substring(0, 8)}`,
       });
       
-      // Redirect to reservation confirmation page
+      // Redirect to reservation detail page
       console.log('[useReservationSubmit] Navigating to confirmation. User Session:', userSession);
-      navigate(`/reservations/${reservation.id}`, { state: { justReserved: true } });
+      navigate(`/reservations/${reservation.id}`);
       return true;
       
     } catch (error: any) {
@@ -226,9 +226,9 @@ export function useReservationSubmit(
         description: `Your reservation has been created with ID: ${reservation.id.substring(0, 8)}`,
       });
       
-      // Redirect to reservation confirmation page
+      // Redirect to reservation detail page
       console.log('[useReservationSubmit] Navigating to confirmation after GUEST reservation.');
-      navigate(`/reservations/${reservation.id}`, { state: { justReserved: true } });
+      navigate(`/reservations/${reservation.id}`);
       return true;
       
     } catch (error: any) {
