@@ -1,55 +1,43 @@
 
 import { lazy, Suspense } from "react";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { RoleProtectedRoute } from "@/components/auth/RoleProtectedRoute";
 import { LoadingSpinner } from "./LoadingSpinner";
-import { useAdminBeachList } from "@/hooks/admin/useAdminBeachList";
 
-// Lazy-loaded admin pages
+// Lazy-loaded components
 const AdminDashboard = lazy(() => import("@/pages/admin/Dashboard"));
-const BeachesManagement = lazy(() => import("@/pages/admin/BeachesManagement"));
+const UserManagement = lazy(() => import("@/pages/admin/UserManagement"));
 const ContentManagement = lazy(() => import("@/pages/admin/ContentManagement"));
-const ReservationManagementTab = lazy(() => import("@/pages/admin/ReservationManagementTab"));
-const AdminReservationDetail = lazy(() => import("@/pages/admin/AdminReservationDetail"));
+const BeachesManagement = lazy(() => import("@/pages/admin/BeachesManagement"));
 const CreateOnSiteReservation = lazy(() => import("@/pages/admin/CreateOnSiteReservation"));
-
-// Create a wrapper component to pass beaches to ReservationManagementTab
-const ReservationsPage = () => {
-  const { beaches } = useAdminBeachList();
-  return <ReservationManagementTab beaches={beaches} />;
-};
+const AdminReservationDetail = lazy(() => import("@/pages/admin/AdminReservationDetail"));
+const ReservationManagementTab = lazy(() => import("@/pages/admin/ReservationManagementTab"));
+const ReservationsDashboard = lazy(() => import("@/pages/admin/ReservationsDashboard"));
 
 export const adminRoutes = {
   path: "admin",
-  element: <DashboardLayout />,
+  element: <RoleProtectedRoute allowedRoles={["admin", "employee"]} />,
   children: [
-    {
-      path: "users",
-      element: (
-        <Suspense fallback={<LoadingSpinner />}>
-          <RoleProtectedRoute roles={["admin"]}>
-            <AdminDashboard />
-          </RoleProtectedRoute>
-        </Suspense>
-      ),
-    },
     {
       index: true,
       element: (
         <Suspense fallback={<LoadingSpinner />}>
-          <RoleProtectedRoute roles={["admin"]}>
-            <AdminDashboard />
-          </RoleProtectedRoute>
+          <AdminDashboard />
         </Suspense>
       ),
     },
     {
-      path: "beaches",
+      path: "dashboard",
       element: (
         <Suspense fallback={<LoadingSpinner />}>
-          <RoleProtectedRoute roles={["admin"]}>
-            <BeachesManagement />
-          </RoleProtectedRoute>
+          <ReservationsDashboard />
+        </Suspense>
+      ),
+    },
+    {
+      path: "users",
+      element: (
+        <Suspense fallback={<LoadingSpinner />}>
+          <UserManagement />
         </Suspense>
       ),
     },
@@ -57,9 +45,15 @@ export const adminRoutes = {
       path: "content",
       element: (
         <Suspense fallback={<LoadingSpinner />}>
-          <RoleProtectedRoute roles={["admin"]}>
-            <ContentManagement />
-          </RoleProtectedRoute>
+          <ContentManagement />
+        </Suspense>
+      ),
+    },
+    {
+      path: "beaches",
+      element: (
+        <Suspense fallback={<LoadingSpinner />}>
+          <BeachesManagement />
         </Suspense>
       ),
     },
@@ -67,9 +61,15 @@ export const adminRoutes = {
       path: "reservations",
       element: (
         <Suspense fallback={<LoadingSpinner />}>
-          <RoleProtectedRoute roles={["admin", "employee"]}>
-            <ReservationsPage />
-          </RoleProtectedRoute>
+          <ReservationManagementTab />
+        </Suspense>
+      ),
+    },
+    {
+      path: "reservations/create",
+      element: (
+        <Suspense fallback={<LoadingSpinner />}>
+          <CreateOnSiteReservation />
         </Suspense>
       ),
     },
@@ -77,19 +77,7 @@ export const adminRoutes = {
       path: "reservations/:id",
       element: (
         <Suspense fallback={<LoadingSpinner />}>
-          <RoleProtectedRoute roles={["admin", "employee"]}>
-            <AdminReservationDetail />
-          </RoleProtectedRoute>
-        </Suspense>
-      ),
-    },
-    {
-      path: "create-reservation",
-      element: (
-        <Suspense fallback={<LoadingSpinner />}>
-          <RoleProtectedRoute roles={["admin", "employee"]}>
-            <CreateOnSiteReservation />
-          </RoleProtectedRoute>
+          <AdminReservationDetail />
         </Suspense>
       ),
     },

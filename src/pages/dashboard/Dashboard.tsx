@@ -1,5 +1,4 @@
 
-
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
@@ -16,11 +15,11 @@ export default function Dashboard() {
     if (!loading && !user) {
       navigate("/auth/login");
     } else if (!loading && role === "admin") {
-      // Admin users already see the dashboard here
-      console.log("Admin user on dashboard");
+      // Admin users should go to the simplified dashboard
+      navigate("/admin/dashboard");
     } else if (!loading && role === "employee") {
-      // Employee users should go to the reservations management
-      navigate("/admin/reservations");
+      // Employee users should go to the simplified dashboard
+      navigate("/admin/dashboard");
     } else if (!loading && role === "client") {
       // Regular users should see their reservations
       navigate("/user/reservations");
@@ -38,15 +37,7 @@ export default function Dashboard() {
     );
   }
   
-  // This is for admin users
-  if (role === "admin") {
-    return (
-      <DashboardLayout>
-        <DashboardOverview />
-      </DashboardLayout>
-    );
-  }
-  
+  // Since we're redirecting, this should rarely render
   return (
     <div className="flex items-center justify-center h-screen w-full bg-background">
       <div className="flex flex-col items-center">

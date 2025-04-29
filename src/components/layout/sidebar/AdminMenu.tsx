@@ -1,45 +1,40 @@
 
-import { UserRound, Users, Palmtree, FileText, CalendarCheck, Plus } from "lucide-react";
+import { 
+  LayoutDashboard, 
+  Users, 
+  FileText, 
+  Umbrella, 
+  Calendar,
+  BookOpen
+} from "lucide-react";
 import { MenuItem } from "./MenuItem";
-import { useAuth } from "@/contexts/auth";
 
 export function AdminMenu() {
-  const { userSession } = useAuth();
-  const { role } = userSession;
-
-  const isEmployee = role === 'employee';
-  const isAdmin = role === 'admin';
-
   return (
-    <div className="space-y-1">
-      {isAdmin && (
-        <>
-          <MenuItem to="/admin/users" icon={Users}>
-            Users Management
-          </MenuItem>
-          <MenuItem to="/admin/beaches" icon={Palmtree}>
-            Beaches Management
-          </MenuItem>
-          <MenuItem to="/admin/content" icon={FileText}>
-            Content Management
-          </MenuItem>
-        </>
-      )}
-      
-      {(isAdmin || isEmployee) && (
-        <>
-          <MenuItem to="/admin/reservations" icon={CalendarCheck}>
-            Reservations
-          </MenuItem>
-          <MenuItem to="/admin/create-reservation" icon={Plus}>
-            Create On-Site Reservation
-          </MenuItem>
-        </>
-      )}
-      
-      <MenuItem to="/user/profile" icon={UserRound}>
-        My Profile
+    <>
+      <div className="mb-2 px-2 text-xs text-muted-foreground">
+        Admin
+      </div>
+
+      <MenuItem to="/admin/dashboard" icon={LayoutDashboard}>
+        Reservations Dashboard
       </MenuItem>
-    </div>
+      
+      <MenuItem to="/admin/users" icon={Users}>
+        User Management
+      </MenuItem>
+
+      <MenuItem to="/admin/beaches" icon={Umbrella}>
+        Beaches Management
+      </MenuItem>
+
+      <MenuItem to="/admin/reservations" icon={Calendar}>
+        Reservations
+      </MenuItem>
+
+      <MenuItem to="/admin/content" icon={FileText}>
+        Content Management
+      </MenuItem>
+    </>
   );
 }
