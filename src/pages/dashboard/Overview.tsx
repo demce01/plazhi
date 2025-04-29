@@ -13,7 +13,9 @@ import {
   Clock,
   Check,
   X,
-  Shield
+  Shield,
+  Search,
+  FilterX
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,6 +26,10 @@ import { AdminReservationsTable } from "@/components/admin/AdminReservationsTabl
 import { useNavigate } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DatePicker } from "@/components/ui/date-picker";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState } from "react";
 
 interface ReservationStats {
   total: number;
@@ -40,6 +46,12 @@ interface BeachStats {
 
 export default function DashboardOverview() {
   const navigate = useNavigate();
+  
+  // Filter states
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedDate, setSelectedDate] = useState<Date>();
+  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [selectedBeach, setSelectedBeach] = useState("all");
   
   const { data: beachesData, isLoading: isLoadingBeaches } = useQuery<BeachStats, Error>({
     queryKey: ['beaches-stats'],
@@ -62,6 +74,19 @@ export default function DashboardOverview() {
         active: beachesWithSets?.length || 0,
         capacity: sets?.length || 0
       };
+    },
+  });
+
+  const { data: beaches = [] } = useQuery({
+    queryKey: ['admin-beaches-list'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('beaches')
+        .select('*')
+        .order('name');
+        
+      if (error) throw new Error(error.message);
+      return data || [];
     },
   });
 
@@ -142,6 +167,58 @@ export default function DashboardOverview() {
     },
     staleTime: 2 * 60 * 1000,
   });
+
+  // Filter reservations
+  const filteredTodayReservations = todayReservations?.filter(reservation => {
+    // Search filter
+    const searchLower = searchQuery.toLowerCase();
+    const matchesSearch = !searchQuery || 
+      reservation.guest_name?.toLowerCase().includes(searchLower) ||
+      reservation.guest_email?.toLowerCase().includes(searchLower) ||
+      reservation.guest_phone?.toLowerCase().includes(searchLower) ||
+      reservation.id.toLowerCase().includes(searchLower);
+
+    // Date filter - for today's tab we don't need date filter
+    const matchesDate = !selectedDate || true;
+
+    // Status filter
+    const matchesStatus = selectedStatus === "all" || reservation.status === selectedStatus;
+
+    // Beach filter
+    const matchesBeach = selectedBeach === "all" || reservation.beach_id === selectedBeach;
+
+    return matchesSearch && matchesDate && matchesStatus && matchesBeach;
+  }) || [];
+
+  // Filter recent reservations
+  const filteredRecentReservations = reservationsData?.recent.filter(reservation => {
+    // Search filter
+    const searchLower = searchQuery.toLowerCase();
+    const matchesSearch = !searchQuery || 
+      reservation.guest_name?.toLowerCase().includes(searchLower) ||
+      reservation.guest_email?.toLowerCase().includes(searchLower) ||
+      reservation.guest_phone?.toLowerCase().includes(searchLower) ||
+      reservation.id.toLowerCase().includes(searchLower);
+
+    // Date filter
+    const matchesDate = !selectedDate || 
+      new Date(reservation.reservation_date).toDateString() === selectedDate.toDateString();
+
+    // Status filter
+    const matchesStatus = selectedStatus === "all" || reservation.status === selectedStatus;
+
+    // Beach filter
+    const matchesBeach = selectedBeach === "all" || reservation.beach_id === selectedBeach;
+
+    return matchesSearch && matchesDate && matchesStatus && matchesBeach;
+  }) || [];
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    setSelectedDate(undefined);
+    setSelectedStatus("all");
+    setSelectedBeach("all");
+  };
 
   const isLoading = isLoadingBeaches || isLoadingAdmins || isLoadingReservations || isLoadingToday;
 
@@ -272,37 +349,95 @@ export default function DashboardOverview() {
         </Card>
       </div>
 
-      <Tabs defaultValue="today" className="mt-6">
-        <TabsList>
-          <TabsTrigger value="today" className="flex items-center">
-            <Clock className="h-4 w-4 mr-2" />
-            Today's Reservations
-          </TabsTrigger>
-          <TabsTrigger value="recent" className="flex items-center">
-            <BarChart3 className="h-4 w-4 mr-2" />
-            Recent Activity
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="today" className="mt-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <div className="flex justify-between items-center">
-                <div>
-                  <CardTitle>Today's Reservations</CardTitle>
-                  <CardDescription>
-                    {todayCount} reservations scheduled for today
-                  </CardDescription>
+      {/* Filter Bar - Added similar to Reservation Management page */}
+      <Card>
+        <CardContent className="p-6">
+          <div className="space-y-4 mb-4">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search by guest name, email, phone or ID..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-8"
+                  />
                 </div>
-                {todayCount > 0 && (
-                  <Badge variant={checkedInPercentage === 100 ? "success" : "outline"}>
-                    {checkedInPercentage}% Check-in Rate
-                  </Badge>
-                )}
               </div>
-            </CardHeader>
-            <CardContent>
-              {todayReservations?.length === 0 ? (
+              <div className="flex flex-wrap gap-2 md:flex-nowrap">
+                <DatePicker
+                  date={selectedDate}
+                  setDate={setSelectedDate}
+                  className="w-[240px]"
+                  placeholder="Filter by date"
+                />
+                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="confirmed">Confirmed</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={selectedBeach} onValueChange={setSelectedBeach}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Beach" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Beaches</SelectItem>
+                    {beaches.map((beach) => (
+                      <SelectItem key={beach.id} value={beach.id}>
+                        {beach.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button 
+                  variant="outline" 
+                  onClick={clearFilters}
+                  className="flex items-center gap-2"
+                >
+                  <FilterX className="h-4 w-4" />
+                  Clear Filters
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <Tabs defaultValue="today" className="mt-6">
+            <TabsList>
+              <TabsTrigger value="today" className="flex items-center">
+                <Clock className="h-4 w-4 mr-2" />
+                Today's Reservations
+              </TabsTrigger>
+              <TabsTrigger value="recent" className="flex items-center">
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Recent Activity
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="today" className="mt-4">
+              <div className="pb-2">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="text-lg font-semibold">Today's Reservations</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {filteredTodayReservations.length} reservations scheduled for today
+                    </p>
+                  </div>
+                  {todayCount > 0 && (
+                    <Badge variant={checkedInPercentage === 100 ? "outline" : "outline"}>
+                      {checkedInPercentage}% Check-in Rate
+                    </Badge>
+                  )}
+                </div>
+              </div>
+              
+              {filteredTodayReservations.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 text-center">
                   <Calendar className="h-10 w-10 text-muted-foreground mb-3" />
                   <h3 className="text-lg font-medium">No Reservations Today</h3>
@@ -318,43 +453,47 @@ export default function DashboardOverview() {
                 </div>
               ) : (
                 <AdminReservationsTable 
-                  reservations={todayReservations} 
+                  reservations={filteredTodayReservations} 
                   isLoading={false}
                   showCheckInColumn={true}
+                  onActionComplete={() => {}}
                 />
               )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="recent" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Reservations</CardTitle>
-              <CardDescription>
-                The 5 most recently created reservations across all beaches
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+            </TabsContent>
+            
+            <TabsContent value="recent" className="mt-4">
+              <div className="pb-2">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="text-lg font-semibold">Recent Reservations</h3>
+                    <p className="text-sm text-muted-foreground">
+                      The most recently created reservations across all beaches
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
               <AdminReservationsTable 
-                reservations={reservationsData?.recent || []} 
-                isLoading={isLoadingReservations} 
+                reservations={filteredRecentReservations} 
+                isLoading={isLoadingReservations}
+                onActionComplete={() => {}}
               />
-            </CardContent>
-            <CardFooter className="flex justify-end pt-0">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => navigate("/settings/admin")}
-                className="text-sm"
-              >
-                View all reservations
-                <ArrowUpRight className="h-4 w-4 ml-1" />
-              </Button>
-            </CardFooter>
-          </Card>
-        </TabsContent>
-      </Tabs>
+              
+              <div className="flex justify-end pt-4">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => navigate("/settings/admin")}
+                  className="text-sm"
+                >
+                  View all reservations
+                  <ArrowUpRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
         <Card>
