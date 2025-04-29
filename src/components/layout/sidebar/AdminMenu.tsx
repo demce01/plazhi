@@ -3,8 +3,7 @@ import {
   LayoutDashboard, 
   Users, 
   FileText, 
-  Umbrella, 
-  Calendar,
+  Umbrella,
   BookOpen
 } from "lucide-react";
 import { MenuItem } from "./MenuItem";
@@ -26,10 +25,6 @@ export function AdminMenu() {
 
       <MenuItem to="/admin/beaches" icon={Umbrella}>
         Beaches Management
-      </MenuItem>
-
-      <MenuItem to="/admin/reservations" icon={Calendar}>
-        Reservations
       </MenuItem>
 
       <MenuItem to="/admin/content" icon={FileText}>
