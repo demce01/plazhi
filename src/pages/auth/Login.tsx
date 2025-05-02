@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useAuth } from "@/contexts/auth";
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
+import { Home } from "lucide-react";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -50,6 +52,13 @@ export default function Login() {
     <div className="flex justify-center items-center min-h-[calc(100vh-16rem)]">
       <Card className="w-full max-w-md">
         <CardHeader>
+          <div className="flex justify-between items-center mb-2">
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/">
+                <Home className="mr-2 h-4 w-4" /> Home
+              </Link>
+            </Button>
+          </div>
           <CardTitle className="text-2xl font-bold">Sign in to your account</CardTitle>
           <CardDescription>
             Enter your email and password to sign in to your account
