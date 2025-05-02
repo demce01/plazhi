@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2 } from "lucide-react";
 import { GuestReservationForm } from "./GuestReservationForm";
 import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
 
 interface PaymentStepProps {
   isActive: boolean;
@@ -27,9 +28,11 @@ export function PaymentStep({
   selectedDate,
   selectedZone,
   selectedSets,
+  isLoggedIn,
   isProcessing,
   onRemoveSet,
   onBack,
+  onSubmit,
   onGuestSubmit
 }: PaymentStepProps) {
   return (
@@ -95,18 +98,43 @@ export function PaymentStep({
       </div>
       
       <div>
-        <div className="space-y-6">
-          <h3 className="font-semibold text-lg">Contact Information</h3>
-          <p className="text-gray-600">
-            Please provide your contact details to complete the reservation.
-          </p>
-          
-          <GuestReservationForm 
-            onSubmit={onGuestSubmit}
-            onCancel={onBack}
-            isSubmitting={isProcessing}
-          />
-        </div>
+        {isLoggedIn ? (
+          <div className="space-y-6">
+            <h3 className="font-semibold text-lg">Complete Your Reservation</h3>
+            <p className="text-gray-600">
+              You're logged in and ready to complete your reservation.
+            </p>
+            
+            <div className="flex justify-between pt-4">
+              <Button variant="outline" onClick={onBack}>
+                Back
+              </Button>
+              <Button onClick={onSubmit} disabled={isProcessing}>
+                {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Complete Reservation
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            <h3 className="font-semibold text-lg">Guest Reservation</h3>
+            <p className="text-gray-600">
+              Please provide your contact details to complete the reservation. 
+              <span className="block mt-2">
+                Already have an account? 
+                <Link to="/auth/login" className="text-primary ml-1 hover:underline">
+                  Log in
+                </Link>
+              </span>
+            </p>
+            
+            <GuestReservationForm 
+              onSubmit={onGuestSubmit}
+              onCancel={onBack}
+              isSubmitting={isProcessing}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

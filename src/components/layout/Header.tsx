@@ -1,5 +1,7 @@
+
 import { Button } from "@/components/ui/button";
 import { PanelLeftOpen, PanelLeftClose } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface HeaderProps {
   toggleSidebar: () => void;
@@ -26,7 +28,11 @@ export function Header({ toggleSidebar, isSidebarOpen, showSidebarToggle = true 
         </div>
         <nav>
           <ul className="flex space-x-4">
-            {/* Navigation links can go here */}
+            <li>
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/beaches">Book Now</Link>
+              </Button>
+            </li>
           </ul>
         </nav>
       </div>

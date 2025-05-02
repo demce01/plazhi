@@ -5,8 +5,6 @@ import { Header } from "./Header";
 import { Footer } from "./Footer";
 import { DashboardSidebar } from "./DashboardSidebar";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { PanelLeftOpen, PanelLeftClose } from "lucide-react";
 import { useAuth } from "@/contexts/auth";
 
 export function MainLayout() {
